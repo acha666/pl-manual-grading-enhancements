@@ -80,7 +80,7 @@ jobs:
         run: pnpm playwright install chromium --with-deps
 
       - name: Set up Python dependencies used by PrairieLearn
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
           cache-dependency-glob: .ci/prairielearn/pyproject.toml

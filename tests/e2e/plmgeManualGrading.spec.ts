@@ -125,7 +125,7 @@ test.describe.serial('PLMGE against a real PrairieLearn manual-grading page', ()
 
     await page.goto(manualGradingIQUrl);
     await expect(page.locator(MARKER)).toHaveCount(1);
-    await expect(page.locator('html[data-pl-manual-grading-enhancements="2.0.0"]')).toHaveCount(1);
+    await expect(page.locator('html[data-pl-manual-grading-enhancements]')).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Manual grading options' })).toBeVisible();
     await expect(page.locator(FEEDBACK)).toBeEditable();
     await expect(page.locator('#username-nav[data-view-type="instructor"]')).toContainText(

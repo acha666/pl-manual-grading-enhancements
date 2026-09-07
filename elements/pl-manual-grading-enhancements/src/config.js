@@ -3,7 +3,7 @@
 
   const PLMGE = (window.PLMGE = window.PLMGE ?? {});
 
-  PLMGE.VERSION = "2.0.0";
+  PLMGE.VERSION = "2.0.1";
   PLMGE.STORAGE_KEY = "pl.manualGradingEnhancements.settings.v1";
   PLMGE.DIGIT_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
   PLMGE.GROUP_PATTERN = /^(\s*\[([^\]\r\n]+)\]\s*)/;

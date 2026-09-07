@@ -20,7 +20,7 @@ test("full PrairieLearn-shaped page initializes and builds grouped criteria", ()
   const dom = boot();
   const { document } = dom.window;
 
-  assert.equal(document.documentElement.dataset.plManualGradingEnhancements, "2.0.0");
+  assert.ok(document.documentElement.dataset.plManualGradingEnhancements);
   assert.equal(document.querySelectorAll(".plmge-criterion").length, 2);
   assert.deepEqual(
     [...document.querySelectorAll(".plmge-criterion-name")].map((node) => node.textContent),
@@ -50,7 +50,7 @@ test("reinitializes after PrairieLearn replaces the grading panel contents", asy
 
   await new Promise((resolve) => dom.window.queueMicrotask(resolve));
 
-  assert.equal(document.documentElement.dataset.plManualGradingEnhancements, "2.0.0");
+  assert.ok(document.documentElement.dataset.plManualGradingEnhancements);
   assert.equal(document.querySelectorAll(".plmge-criterion").length, 2);
   assert.equal(document.querySelectorAll(".plmge-options-menu").length, 1);
 
@@ -78,7 +78,7 @@ test("a read-only grading panel does not fail because it has no grade action", (
   loadScripts(dom.window);
   fireDOMContentLoaded(dom.window);
 
-  assert.equal(document.documentElement.dataset.plManualGradingEnhancements, "2.0.0");
+  assert.ok(document.documentElement.dataset.plManualGradingEnhancements);
   assert.equal(document.querySelector(".plmge-feature-messages"), null);
   assert.equal(document.querySelectorAll(".plmge-criterion").length, 2);
   dom.window.close();

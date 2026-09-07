@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+- Fixed the upstream compatibility workflow to use the published `setup-uv` v10.0.1 action reference.
+
 ## 2.0.0
 
 - Repositioned the element as a PrairieLearn manual-grading enhancement bundle.
