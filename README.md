@@ -12,6 +12,8 @@ Download `pl-manual-grading-enhancements.zip` from a GitHub release and extract 
 
 The element renders a hidden marker only in the human manual-grading question panel. It renders nothing for students or AI grading.
 
+Optional settings can open the newest submitted answer's file preview and bring it into view automatically, or color rubric descriptions containing scores such as `(6/6)`, `(3/6)`, and `(0/6)` green, amber, and red respectively. Both settings are disabled by default.
+
 ## Group rubric items
 
 Start a rubric item description with a bracketed criterion name:
@@ -58,6 +60,16 @@ Graded by: Grader Name
 ```
 
 The name is read from PrairieLearn's authenticated staff menu. A terminal `Graded by:` line is replaced rather than duplicated. Skip, navigation, and reassignment actions do not add attribution.
+
+### Open latest answer preview
+
+When enabled, opens the newest submitted answer's file preview and scrolls it
+into view on manual-grading pages. Disabled by default.
+
+### Color rubric scores
+
+When enabled, score fractions are colored green for full credit, amber for
+partial credit, and red for no credit. Disabled by default.
 
 ## Compatibility and failure behavior
 

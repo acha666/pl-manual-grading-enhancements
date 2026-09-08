@@ -1,16 +1,8 @@
 import type { RubricItem } from "./types.js";
 import { GROUP_PATTERN, SELECTORS } from "./config.js";
-import { requireExactlyOne, requireCondition } from "./dom.js";
+import { requireCondition, requireExactlyOne } from "./dom.js";
 
 export type Contract = ReturnType<typeof buildContract>;
-export type ViewContract = ReturnType<typeof buildViewContract>;
-
-function readGraderName(graderMenu: HTMLElement) {
-  const copy = graderMenu.cloneNode(true) as HTMLElement;
-  copy.querySelectorAll(".badge").forEach((badge) => badge.remove());
-  return copy.textContent.replace(/\s+/g, " ").trim();
-}
-
 function readRubricItem(
   input: HTMLInputElement,
   index: number,
@@ -79,85 +71,6 @@ function readRubricItem(
       ? description.textContent.slice(match[1].length).trim()
       : description.textContent.trim(),
   };
-}
-
-export function buildViewContract(contract: Contract) {
-  const gradingCard = contract.gradingPanel.closest<HTMLElement>(".card");
-  requireCondition(
-    gradingCard,
-    "The main Grading panel is not inside the expected card.",
-  );
-
-  const gradingHeader = requireExactlyOne(
-    gradingCard,
-    ":scope > .card-header",
-    "Grading card header",
-  );
-  requireCondition(
-    gradingHeader.textContent.trim() === "Grading",
-    `Expected the Grading card heading to be "Grading"; found "${gradingHeader.textContent.trim()}".`,
-  );
-
-  const rightColumn = gradingCard.parentElement;
-  requireCondition(
-    rightColumn && rightColumn.matches(".col-lg-4.col-12"),
-    "The Grading card is not inside the expected right-hand Bootstrap column.",
-  );
-
-  const layoutRow = rightColumn.parentElement;
-  requireCondition(
-    layoutRow && layoutRow.matches(".row"),
-    "The Grading column is not inside the expected row.",
-  );
-
-  const leftColumns = [...layoutRow.children].filter((element) =>
-    element.matches(".col-lg-8.col-12"),
-  );
-  requireCondition(
-    leftColumns.length === 1,
-    `Expected one left response column; found ${leftColumns.length}.`,
-  );
-  requireCondition(
-    window.bootstrap?.Dropdown,
-    "Bootstrap dropdown support is not available on the manual-grading page.",
-  );
-
-  return {
-    gradingCard,
-    gradingHeader,
-    leftColumn: leftColumns[0] as HTMLElement,
-    rightColumn,
-    layoutRow,
-  };
-}
-
-export function buildAttributionContract(contract: Contract) {
-  const feedback = requireExactlyOne<HTMLTextAreaElement>(
-    contract.form,
-    SELECTORS.feedback,
-    "submission feedback field",
-  );
-  requireCondition(
-    !feedback.disabled && !feedback.readOnly,
-    "The submission feedback field is not editable.",
-  );
-
-  const graderMenu = requireExactlyOne(
-    document,
-    SELECTORS.graderMenu,
-    "authenticated grader menu",
-  );
-  const graderName = readGraderName(graderMenu);
-  requireCondition(
-    graderName.length > 0,
-    "The authenticated grader name is empty.",
-  );
-  requireCondition(
-    graderName.length <= 200,
-    "The authenticated grader name is unexpectedly long.",
-  );
-
-  return { feedback, graderName };
 }
 
 export function buildContract() {

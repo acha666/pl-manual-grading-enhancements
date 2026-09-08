@@ -2,6 +2,8 @@ export interface Settings {
   splitScrolling: boolean;
   collapseCompleted: boolean;
   appendGraderName: boolean;
+  latestAnswerPreview: boolean;
+  scoreColors: boolean;
 }
 export type SettingName = keyof Settings;
 

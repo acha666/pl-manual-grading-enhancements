@@ -1,4 +1,4 @@
-import type { ViewContract } from "../core/contract.js";
+import type { ViewContract } from "../core/feature-contracts.js";
 import type { Settings, SettingName, Lifecycle } from "../core/types.js";
 import { writeSettings } from "../core/settings.js";
 export class ViewOptions implements Lifecycle {
@@ -57,6 +57,16 @@ export class ViewOptions implements Lifecycle {
         "Append grader name to feedback",
         "Add the authenticated grader name when a grade is submitted.",
       ),
+      this.createOption(
+        "latestAnswerPreview",
+        "Open latest answer preview",
+        "Open and scroll to the newest submitted answer's file preview.",
+      ),
+      this.createOption(
+        "scoreColors",
+        "Color rubric scores",
+        "Color score fractions by the amount of credit awarded.",
+      ),
     );
 
     this.dropdown = dropdown;
@@ -80,7 +90,9 @@ export class ViewOptions implements Lifecycle {
       if (
         name !== "splitScrolling" &&
         name !== "collapseCompleted" &&
-        name !== "appendGraderName"
+        name !== "appendGraderName" &&
+        name !== "latestAnswerPreview" &&
+        name !== "scoreColors"
       )
         return;
       this.settings[name] = input.checked;

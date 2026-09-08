@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0
+
+- Added an option to open and scroll to the newest submitted answer's file preview on manual-grading pages.
+
 ## 3.0.0
 
 - Rebuilt the browser integration in TypeScript and bundled it into production JavaScript and CSS assets.

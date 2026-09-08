@@ -73,6 +73,82 @@ test("full PrairieLearn-shaped page initializes and builds grouped criteria", ()
   assert.ok(document.querySelector(".plmge-options-menu"));
 });
 
+test("opens and scrolls to the newest submitted answer preview", async () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div data-testid="submission-with-feedback">
+        <div data-testid="submission-block">
+          <h2>Submitted answer 1</h2>
+          <div class="js-submission-body" id="submission-1-body">
+            <div class="js-file-preview-item">
+              <button type="button" data-bs-toggle="collapse" aria-expanded="false">Show preview</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-testid="submission-with-feedback">
+        <div data-testid="submission-block">
+          <h2>Submitted answer 2</h2>
+          <div class="js-submission-body" id="submission-2-body">
+            <div class="js-file-preview-item">
+              <button type="button" data-bs-toggle="collapse" aria-expanded="false">Show preview</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+  );
+  const newest = document.querySelectorAll(
+    '[data-testid="submission-block"]',
+  )[1];
+  const newestPreview = newest.querySelector(".js-file-preview-item");
+  const previewButton = newestPreview.querySelector("button");
+  let previewClicks = 0;
+  let scrolls = 0;
+  previewButton.addEventListener("click", () => {
+    previewClicks += 1;
+  });
+  newestPreview.scrollIntoView = () => {
+    scrolls += 1;
+  };
+
+  loadScripts(dom.window);
+  fireDOMContentLoaded(dom.window);
+  document.querySelector('[data-setting="latestAnswerPreview"]').click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 10));
+
+  assert.equal(previewClicks, 1);
+  assert.equal(scrolls, 1);
+  assert.equal(newest.dataset.plmgeLatestPreviewInitialized, "true");
+});
+
+test("colors rubric score fractions by the amount of credit", () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.querySelector(
+    '[data-testid="rubric-item-description"]',
+  ).textContent = "Full (6/6), partial (3/6), and no credit (0/6)";
+
+  loadScripts(dom.window);
+  fireDOMContentLoaded(dom.window);
+  document.querySelector('[data-setting="scoreColors"]').click();
+
+  assert.deepEqual(
+    [...document.querySelectorAll(".plmge-score")].map((score) => [
+      score.textContent,
+      score.className,
+    ]),
+    [
+      ["(6/6)", "plmge-score text-success"],
+      ["(3/6)", "plmge-score text-warning"],
+      ["(0/6)", "plmge-score text-danger"],
+    ],
+  );
+});
+
 test("reinitializes after PrairieLearn replaces the grading panel contents", async () => {
   const source = createPage();
   const replacement = source.window.document.querySelector(
@@ -129,7 +205,7 @@ test("the view options menu is created from the Grading header contract", () => 
   const menu = document.querySelector(".plmge-options-menu");
 
   assert.ok(menu);
-  assert.equal(menu.querySelectorAll("input[data-setting]").length, 3);
+  assert.equal(menu.querySelectorAll("input[data-setting]").length, 5);
   assert.equal(
     menu.querySelector('[data-setting="appendGraderName"]').checked,
     true,
@@ -286,6 +362,14 @@ test("settings are persisted and malformed stored values fall back to safe defau
     assert.equal(
       menu.querySelector('[data-setting="appendGraderName"]').checked,
       true,
+    );
+    assert.equal(
+      menu.querySelector('[data-setting="latestAnswerPreview"]').checked,
+      false,
+    );
+    assert.equal(
+      menu.querySelector('[data-setting="scoreColors"]').checked,
+      false,
     );
     menu.querySelector('[data-setting="collapseCompleted"]').click();
     assert.equal(

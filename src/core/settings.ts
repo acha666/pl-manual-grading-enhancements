@@ -4,6 +4,8 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   splitScrolling: false,
   collapseCompleted: false,
   appendGraderName: true,
+  latestAnswerPreview: false,
+  scoreColors: false,
 });
 
 export function readSettings(): Settings {
