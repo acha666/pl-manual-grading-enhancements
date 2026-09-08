@@ -34,4 +34,5 @@ if (process.argv.includes("--package")) {
     );
   }
   await cp("README.md", "dist/README.md");
+  await cp("docs", "dist/docs", { recursive: true });
 }
