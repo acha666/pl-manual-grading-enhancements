@@ -41,7 +41,10 @@ export function composeFeatures(contract: Contract, report: Report) {
       new RubricGroups(
         contract,
         settings,
-        () => syncShortcuts(),
+        () => {
+          syncShortcuts();
+          scoreColors?.sync();
+        },
         appendAttribution,
       ),
     true,

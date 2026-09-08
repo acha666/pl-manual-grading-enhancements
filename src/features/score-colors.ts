@@ -27,12 +27,13 @@ export class ScoreColors implements Lifecycle {
 
   sync() {
     const enabled = this.isEnabled();
-    if (enabled === this.enabled) return;
+    if (enabled === this.enabled && !enabled) return;
     this.enabled = enabled;
     if (enabled) {
       document
         .querySelectorAll<HTMLElement>(SELECTORS.rubricDescription)
         .forEach((description) => this.colorScores(description));
+      this.colorCriterionScores();
     } else {
       this.stop();
     }
@@ -45,6 +46,7 @@ export class ScoreColors implements Lifecycle {
     while ((node = walker.nextNode())) textNodes.push(node as Text);
 
     for (const textNode of textNodes) {
+      if (textNode.parentElement?.classList.contains("plmge-score")) continue;
       const text = textNode.nodeValue ?? "";
       SCORE_PATTERN.lastIndex = 0;
       if (!SCORE_PATTERN.test(text)) continue;
@@ -67,6 +69,25 @@ export class ScoreColors implements Lifecycle {
       fragment.append(text.slice(position));
       textNode.replaceWith(fragment);
     }
+  }
+
+  private colorCriterionScores() {
+    document
+      .querySelectorAll<HTMLElement>(".plmge-criterion")
+      .forEach((root) => {
+        const selected = root.querySelector<HTMLInputElement>(
+          ".plmge-item input:checked",
+        );
+        const source = selected
+          ?.closest(".plmge-item")
+          ?.querySelector<HTMLElement>(".plmge-score");
+        const target = root.querySelector<HTMLElement>(
+          ".plmge-criterion-summary-score",
+        );
+        if (!target) return;
+        target.className = source?.className ?? "plmge-criterion-summary-score";
+        target.classList.add("plmge-criterion-summary-score");
+      });
   }
 
   private classFor(numerator: number, denominator: number) {

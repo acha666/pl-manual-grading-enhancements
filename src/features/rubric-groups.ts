@@ -263,7 +263,14 @@ export class RubricGroups implements Lifecycle {
         : "incomplete";
 
     if (complete) {
-      criterion.summary.textContent = `${selected[0].shortLabel} [${formatPoints(selected[0].points)}]`;
+      criterion.summary.replaceChildren(
+        `${selected[0].shortLabel} [`,
+        Object.assign(document.createElement("span"), {
+          className: "plmge-criterion-summary-score",
+          textContent: formatPoints(selected[0].points),
+        }),
+        "]",
+      );
     } else if (selected.length > 1) {
       criterion.summary.textContent = "Choose one item";
     } else {

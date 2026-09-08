@@ -149,6 +149,26 @@ test("colors rubric score fractions by the amount of credit", () => {
   );
 });
 
+test("colors the selected criterion score in its heading", () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.querySelector(
+    '[data-testid="rubric-item-description"]',
+  ).textContent = "[Opening] Excellent (6/6)";
+
+  loadScripts(dom.window);
+  fireDOMContentLoaded(dom.window);
+  document.querySelector('[value="a1"]').click();
+  document.querySelector('[data-setting="scoreColors"]').click();
+
+  assert.equal(
+    document.querySelector(
+      "#plmge-criterion-heading-1 .plmge-criterion-summary-score",
+    ).className,
+    "plmge-score text-success plmge-criterion-summary-score",
+  );
+});
+
 test("reinitializes after PrairieLearn replaces the grading panel contents", async () => {
   const source = createPage();
   const replacement = source.window.document.querySelector(

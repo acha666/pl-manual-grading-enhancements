@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1
+
+- Fixed score coloring for the selected score shown in grouped criterion headings.
+
 ## 3.1.0
 
 - Added an option to open and scroll to the newest submitted answer's file preview on manual-grading pages.
