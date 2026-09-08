@@ -3,6 +3,7 @@
 ## 3.1.0
 
 - Added an option to open and scroll to the newest submitted answer's file preview on manual-grading pages.
+- Added an option to color rubric score fractions according to the credit awarded.
 
 ## 3.0.0
 
