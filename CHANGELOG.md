@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.2
+
+- Refactored manual-grading features into independently validated modules with isolated optional-feature failures and safer panel refresh cleanup.
+- Expanded browser, settings, rubric, layout, shortcut, attribution, and answer-preview test coverage.
+- Split development and deployment testing guidance into dedicated documents and included them in release packages.
+
 ## 3.1.1
 
 - Fixed score coloring for the selected score shown in grouped criterion headings.
