@@ -23,11 +23,6 @@ const ELEMENT_SRC = path.join(
   "pl-manual-grading-enhancements",
   "dist",
 );
-const SCRIPT_ORDER = ["main.js"];
-
-function scriptText(name) {
-  return fs.readFileSync(path.join(ELEMENT_SRC, name), "utf8");
-}
 
 function rubricRow({
   id,
@@ -111,30 +106,25 @@ function pageHtml({
         key: "1",
       });
 
+  const gradingPanel = `<div class="js-main-grading-panel">
+    <form name="manual-grading-form" data-rubric-active="${activeRubric}">
+      ${rows}
+      ${includeAttribution ? '<textarea name="submission_note" class="js-submission-feedback"></textarea>' : ""}
+      <button type="submit" name="__action" value="add_manual_grade">Submit</button>
+      ${includeView ? '<button type="submit" name="__action" value="skip_manual_grade">Skip</button>' : ""}
+    </form>
+  </div>`;
   const view = includeView
     ? `<div class="row">
         <div class="col-lg-8 col-12" id="response-column">Response</div>
         <div class="col-lg-4 col-12">
           <div class="card">
             <div class="card-header">${malformed ? "Not grading" : "Grading"}</div>
-            <div class="js-main-grading-panel">
-              <form name="manual-grading-form" data-rubric-active="${activeRubric}">
-                ${rows}
-                ${includeAttribution ? '<textarea name="submission_note" class="js-submission-feedback"></textarea>' : ""}
-                <button type="submit" name="__action" value="add_manual_grade">Submit</button>
-                <button type="submit" name="__action" value="skip_manual_grade">Skip</button>
-              </form>
-            </div>
+            ${gradingPanel}
           </div>
         </div>
       </div>`
-    : `<div class="js-main-grading-panel">
-        <form name="manual-grading-form" data-rubric-active="${activeRubric}">
-          ${rows}
-          ${includeAttribution ? '<textarea name="submission_note" class="js-submission-feedback"></textarea>' : ""}
-          <button type="submit" name="__action" value="add_manual_grade">Submit</button>
-        </form>
-      </div>`;
+    : gradingPanel;
 
   const conflict = includeConflictForm
     ? `<div class="modal show" id="conflictGradingJobModal">
@@ -169,6 +159,7 @@ function createPage(options = {}) {
 
   window.bootstrap = { Dropdown: class Dropdown {} };
   window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0);
+  window.cancelAnimationFrame = (id) => window.clearTimeout(id);
   window.HTMLElement.prototype.scrollIntoView = function scrollIntoView() {};
 
   dom.jsdomErrors = jsdomErrors;
@@ -176,8 +167,8 @@ function createPage(options = {}) {
   return dom;
 }
 
-function loadScripts(window) {
-  for (const name of SCRIPT_ORDER) window.eval(scriptText(name));
+function loadBundle(window) {
+  window.eval(fs.readFileSync(path.join(ELEMENT_SRC, "main.js"), "utf8"));
 }
 
 function fireDOMContentLoaded(window) {
@@ -191,19 +182,25 @@ function fireDOMContentLoaded(window) {
 
 function boot(options = {}) {
   const dom = createPage(options);
-  loadScripts(dom.window);
+  loadBundle(dom.window);
   fireDOMContentLoaded(dom.window);
   return dom;
 }
 
+function submit(form, button) {
+  return form.dispatchEvent(
+    new form.ownerDocument.defaultView.SubmitEvent("submit", {
+      bubbles: true,
+      cancelable: true,
+      submitter: button,
+    }),
+  );
+}
+
 module.exports = {
-  ELEMENT_SRC,
-  ROOT,
-  SCRIPT_ORDER,
   boot,
   createPage,
   fireDOMContentLoaded,
-  loadScripts,
-  pageHtml,
-  rubricRow,
+  loadBundle,
+  submit,
 };
