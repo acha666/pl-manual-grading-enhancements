@@ -1,12 +1,51 @@
-import type { Settings } from "./types.js";
 export const STORAGE_KEY = "pl.manualGradingEnhancements.settings.v1";
-export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
-  splitScrolling: false,
-  collapseCompleted: false,
-  appendGraderName: true,
-  latestAnswerPreview: false,
-  scoreColors: false,
-});
+
+interface SettingDefinition {
+  defaultValue: boolean;
+  label: string;
+  help: string;
+}
+
+export const SETTING_DEFINITIONS = {
+  splitScrolling: {
+    defaultValue: false,
+    label: "Independent panel scrolling",
+    help: "Scroll the response and Grading panes separately on desktop.",
+  },
+  collapseCompleted: {
+    defaultValue: false,
+    label: "Collapse completed criteria",
+    help: "Collapse selected criteria and reassign digits to visible grouped items.",
+  },
+  appendGraderName: {
+    defaultValue: true,
+    label: "Append grader name to feedback",
+    help: "Add the authenticated grader name when a grade is submitted.",
+  },
+  latestAnswerPreview: {
+    defaultValue: false,
+    label: "Open latest answer preview",
+    help: "Open and scroll to the newest submitted answer's file preview.",
+  },
+  scoreColors: {
+    defaultValue: false,
+    label: "Color rubric scores",
+    help: "Color score fractions by the amount of credit awarded.",
+  },
+} satisfies Record<string, SettingDefinition>;
+
+export type SettingName = keyof typeof SETTING_DEFINITIONS;
+export type Settings = Record<SettingName, boolean>;
+export const SETTING_NAMES = Object.keys(SETTING_DEFINITIONS) as SettingName[];
+export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze(
+  Object.fromEntries(
+    SETTING_NAMES.map((name) => [name, SETTING_DEFINITIONS[name].defaultValue]),
+  ) as Settings,
+);
+
+export function isSettingName(name: string | undefined): name is SettingName {
+  return name !== undefined && Object.hasOwn(SETTING_DEFINITIONS, name);
+}
 
 export function readSettings(): Settings {
   try {
@@ -14,7 +53,7 @@ export function readSettings(): Settings {
     const stored: unknown = value ? JSON.parse(value) : null;
     const settings = { ...DEFAULT_SETTINGS };
     if (stored && typeof stored === "object") {
-      for (const name of Object.keys(settings) as (keyof Settings)[]) {
+      for (const name of SETTING_NAMES) {
         if (name in stored) {
           const candidate = (stored as Record<string, unknown>)[name];
           if (typeof candidate === "boolean") settings[name] = candidate;

@@ -66,7 +66,6 @@ function readRubricItem(
     originalKey: key,
     originalBadge: badge,
     originalBadgeText: badge?.textContent.trim() ?? null,
-    generatedBadge: null,
     shortLabel: match
       ? description.textContent.slice(match[1].length).trim()
       : description.textContent.trim(),

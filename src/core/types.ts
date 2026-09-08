@@ -1,12 +1,3 @@
-export interface Settings {
-  splitScrolling: boolean;
-  collapseCompleted: boolean;
-  appendGraderName: boolean;
-  latestAnswerPreview: boolean;
-  scoreColors: boolean;
-}
-export type SettingName = keyof Settings;
-
 export interface RubricItem {
   input: HTMLInputElement;
   label: HTMLLabelElement;
@@ -18,17 +9,7 @@ export interface RubricItem {
   originalKey: string | null;
   originalBadge: HTMLElement | null;
   originalBadgeText: string | null;
-  generatedBadge: HTMLElement | null;
   shortLabel: string;
-}
-export interface Criterion {
-  name: string;
-  root: HTMLElement;
-  heading: HTMLButtonElement;
-  summary: HTMLElement;
-  body: HTMLElement;
-  items: RubricItem[];
-  attempted: boolean;
 }
 export interface Lifecycle {
   start(): void | boolean;

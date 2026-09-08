@@ -1,13 +1,13 @@
 import type { Contract } from "../core/contract.js";
 import type { RubricItem, Lifecycle } from "../core/types.js";
-import type { RubricGroups } from "./rubric-groups.js";
 import { DIGIT_KEYS } from "../core/config.js";
 export class ShortcutManager implements Lifecycle {
+  private generatedBadges = new Map<RubricItem, HTMLElement>();
   private shortcutMap = new Map<string, HTMLInputElement>();
   private started = false;
   constructor(
     private contract: Contract,
-    private rubric: RubricGroups,
+    private getVisibleItems: () => readonly RubricItem[],
     private isEnabled: () => boolean,
   ) {
     this.handleKeypress = this.handleKeypress.bind(this);
@@ -54,9 +54,9 @@ export class ShortcutManager implements Lifecycle {
         .map((item) => item.originalKey),
     );
     const availableKeys = DIGIT_KEYS.filter((key) => !reservedKeys.has(key));
-    const visibleItems = this.rubric
-      .visibleItems()
-      .filter((item) => !item.input.matches(":disabled, [readonly]"));
+    const visibleItems = this.getVisibleItems().filter(
+      (item) => !item.input.matches(":disabled, [readonly]"),
+    );
 
     this.shortcutMap.clear();
     this.contract.groupedItems.forEach((item) => this.setShortcut(item, null));
@@ -78,14 +78,14 @@ export class ShortcutManager implements Lifecycle {
         item.originalBadge!.textContent = item.originalBadgeText;
       } else {
         item.input.removeAttribute("data-key-binding");
-        item.generatedBadge?.remove();
-        item.generatedBadge = null;
+        this.generatedBadges.get(item)?.remove();
+        this.generatedBadges.delete(item);
       }
     }
   }
 
   private setShortcut(item: RubricItem, key: string | null) {
-    let badge = item.originalBadge ?? item.generatedBadge;
+    let badge = item.originalBadge ?? this.generatedBadges.get(item);
 
     if (!key) {
       item.input.removeAttribute("data-key-binding");
@@ -98,7 +98,7 @@ export class ShortcutManager implements Lifecycle {
       badge.className = "pl-kbd kbd-semi-transparent";
       badge.setAttribute("aria-hidden", "true");
       item.input.after(badge);
-      item.generatedBadge = badge;
+      this.generatedBadges.set(item, badge);
     }
 
     item.input.dataset.keyBinding = key;

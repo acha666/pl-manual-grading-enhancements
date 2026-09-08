@@ -21,6 +21,21 @@ export function buildViewContract(contract: Contract) {
     `Expected the Grading card heading to be "Grading"; found "${gradingHeader.textContent.trim()}".`,
   );
 
+  requireCondition(
+    window.bootstrap?.Dropdown,
+    "Bootstrap dropdown support is not available on the manual-grading page.",
+  );
+  return { gradingHeader };
+}
+
+export type PanelLayoutContract = ReturnType<typeof buildPanelLayoutContract>;
+
+export function buildPanelLayoutContract(contract: Contract) {
+  const gradingCard = contract.gradingPanel.closest<HTMLElement>(".card");
+  requireCondition(
+    gradingCard,
+    "The main Grading panel is not inside the expected card.",
+  );
   const rightColumn = gradingCard.parentElement;
   requireCondition(
     rightColumn && rightColumn.matches(".col-lg-4.col-12"),
@@ -40,18 +55,7 @@ export function buildViewContract(contract: Contract) {
     leftColumns.length === 1,
     `Expected one left response column; found ${leftColumns.length}.`,
   );
-  requireCondition(
-    window.bootstrap?.Dropdown,
-    "Bootstrap dropdown support is not available on the manual-grading page.",
-  );
-
-  return {
-    gradingCard,
-    gradingHeader,
-    leftColumn: leftColumns[0] as HTMLElement,
-    rightColumn,
-    layoutRow,
-  };
+  return { leftColumn: leftColumns[0] as HTMLElement, rightColumn, layoutRow };
 }
 
 export function buildAttributionContract(contract: Contract) {

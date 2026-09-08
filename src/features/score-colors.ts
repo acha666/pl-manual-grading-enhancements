@@ -31,7 +31,7 @@ export class ScoreColors implements Lifecycle {
     this.enabled = enabled;
     if (enabled) {
       document
-        .querySelectorAll<HTMLElement>(SELECTORS.rubricDescription)
+        .querySelectorAll<HTMLElement>(SELECTORS.description)
         .forEach((description) => this.colorScores(description));
       this.colorCriterionScores();
     } else {

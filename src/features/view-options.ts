@@ -1,8 +1,14 @@
 import type { ViewContract } from "../core/feature-contracts.js";
-import type { Settings, SettingName, Lifecycle } from "../core/types.js";
-import { writeSettings } from "../core/settings.js";
+import type { Lifecycle } from "../core/types.js";
+import {
+  type Settings,
+  type SettingName,
+  SETTING_DEFINITIONS,
+  SETTING_NAMES,
+  isSettingName,
+  writeSettings,
+} from "../core/settings.js";
 export class ViewOptions implements Lifecycle {
-  private resizeFrame: number | null = null;
   private dropdown: HTMLDivElement | null = null;
   private menu: HTMLDivElement | null = null;
   constructor(
@@ -13,13 +19,10 @@ export class ViewOptions implements Lifecycle {
     private onError: (error: unknown) => void = () => {},
   ) {
     this.handleMenuChange = this.handleMenuChange.bind(this);
-    this.handleResize = this.handleResize.bind(this);
   }
 
   start() {
     this.buildMenu();
-    this.applySplitScrolling();
-    window.addEventListener("resize", this.handleResize);
   }
 
   private buildMenu() {
@@ -41,33 +44,10 @@ export class ViewOptions implements Lifecycle {
       '<i class="bi bi-gear me-1" aria-hidden="true"></i>Options';
 
     menu.className = "dropdown-menu dropdown-menu-end p-3 plmge-options-menu";
-    menu.append(
-      this.createOption(
-        "splitScrolling",
-        "Independent panel scrolling",
-        "Scroll the response and Grading panes separately on desktop.",
-      ),
-      this.createOption(
-        "collapseCompleted",
-        "Collapse completed criteria",
-        "Collapse selected criteria and reassign digits to visible grouped items.",
-      ),
-      this.createOption(
-        "appendGraderName",
-        "Append grader name to feedback",
-        "Add the authenticated grader name when a grade is submitted.",
-      ),
-      this.createOption(
-        "latestAnswerPreview",
-        "Open latest answer preview",
-        "Open and scroll to the newest submitted answer's file preview.",
-      ),
-      this.createOption(
-        "scoreColors",
-        "Color rubric scores",
-        "Color score fractions by the amount of credit awarded.",
-      ),
-    );
+    for (const name of SETTING_NAMES) {
+      const { label, help } = SETTING_DEFINITIONS[name];
+      menu.append(this.createOption(name, label, help));
+    }
 
     this.dropdown = dropdown;
     this.menu = menu;
@@ -85,19 +65,11 @@ export class ViewOptions implements Lifecycle {
         : null;
     if (!input || input.disabled) return;
 
+    const name = input.dataset.setting;
+    if (!isSettingName(name)) return;
+    this.settings[name] = input.checked;
+    writeSettings(this.settings);
     try {
-      const name = input.dataset.setting;
-      if (
-        name !== "splitScrolling" &&
-        name !== "collapseCompleted" &&
-        name !== "appendGraderName" &&
-        name !== "latestAnswerPreview" &&
-        name !== "scoreColors"
-      )
-        return;
-      this.settings[name] = input.checked;
-      writeSettings(this.settings);
-      if (name === "splitScrolling") this.applySplitScrolling();
       this.onSettingChanged(name);
     } catch (error) {
       this.onError(error);
@@ -108,18 +80,8 @@ export class ViewOptions implements Lifecycle {
     if (this.menu)
       this.menu.removeEventListener("change", this.handleMenuChange);
     this.dropdown?.remove();
-    const { layoutRow, leftColumn, rightColumn } = this.contract;
-    layoutRow.classList.remove("plmge-layout", "plmge-split-scroll");
-    layoutRow.style.removeProperty("--plmge-pane-height");
-    leftColumn.classList.remove("plmge-scroll-pane");
-    rightColumn.classList.remove("plmge-scroll-pane");
     this.dropdown = null;
     this.menu = null;
-    window.removeEventListener("resize", this.handleResize);
-    if (this.resizeFrame !== null) {
-      window.cancelAnimationFrame?.(this.resizeFrame);
-      this.resizeFrame = null;
-    }
   }
 
   private createOption(name: SettingName, labelText: string, helpText: string) {
@@ -148,47 +110,5 @@ export class ViewOptions implements Lifecycle {
 
     wrapper.append(input, label, help);
     return wrapper;
-  }
-
-  private applySplitScrolling() {
-    const { layoutRow, leftColumn, rightColumn } = this.contract;
-    layoutRow.classList.add("plmge-layout");
-    leftColumn.classList.add("plmge-scroll-pane");
-    rightColumn.classList.add("plmge-scroll-pane");
-    layoutRow.classList.toggle(
-      "plmge-split-scroll",
-      this.settings.splitScrolling,
-    );
-
-    if (this.settings.splitScrolling) {
-      this.updatePaneHeight();
-    } else {
-      layoutRow.style.removeProperty("--plmge-pane-height");
-    }
-  }
-
-  private handleResize() {
-    if (!this.settings.splitScrolling || this.resizeFrame !== null) return;
-
-    this.resizeFrame = window.requestAnimationFrame(() => {
-      this.resizeFrame = null;
-      try {
-        this.updatePaneHeight();
-      } catch (error) {
-        this.onError(error);
-      }
-    });
-  }
-
-  private updatePaneHeight() {
-    const top = Math.max(
-      this.contract.layoutRow.getBoundingClientRect().top,
-      0,
-    );
-    const height = Math.max(window.innerHeight - top - 8, 320);
-    this.contract.layoutRow.style.setProperty(
-      "--plmge-pane-height",
-      `${height}px`,
-    );
   }
 }
