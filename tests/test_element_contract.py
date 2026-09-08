@@ -8,29 +8,26 @@ ELEMENT = ROOT / "elements" / "pl-manual-grading-enhancements"
 
 
 class ElementContractTests(unittest.TestCase):
-    def test_element_metadata_declares_controller_and_dependency_order(self):
-        metadata = json.loads((ELEMENT / "info.json").read_text(encoding="utf-8"))
-        self.assertEqual(metadata["controller"], "controller.py")
-        self.assertEqual(
-            metadata["dependencies"]["elementScripts"],
-            [
-                "src/config.js",
-                "src/contract.js",
-                "src/rubric-groups.js",
-                "src/shortcuts.js",
-                "src/attribution.js",
-                "src/view-options.js",
-                "src/main.js",
-            ],
-        )
-        for relative_path in metadata["dependencies"]["elementScripts"] + metadata["dependencies"]["elementStyles"]:
-            self.assertTrue((ELEMENT / relative_path).is_file(), relative_path)
+    @classmethod
+    def setUpClass(cls):
+        cls.metadata = json.loads((ELEMENT / "info.json").read_text(encoding="utf-8"))
 
-    def test_element_has_no_unlisted_javascript_source(self):
-        metadata = json.loads((ELEMENT / "info.json").read_text(encoding="utf-8"))
-        declared = {pathlib.Path(item).name for item in metadata["dependencies"]["elementScripts"]}
-        actual = {path.name for path in (ELEMENT / "src").glob("*.js")}
-        self.assertEqual(actual, declared)
+    def test_element_declares_existing_controller(self):
+        self.assertEqual(self.metadata["controller"], "controller.py")
+        self.assertTrue((ELEMENT / self.metadata["controller"]).is_file())
+
+    def test_all_shipping_assets_are_declared_and_nonempty(self):
+        for dependency, suffix, expected in (
+            ("elementScripts", ".js", ["dist/main.js"]),
+            ("elementStyles", ".css", ["dist/styles.css"]),
+        ):
+            with self.subTest(dependency=dependency):
+                declared = self.metadata["dependencies"][dependency]
+                self.assertEqual(declared, expected)
+                actual = {str(p.relative_to(ELEMENT)) for p in (ELEMENT / "dist").glob(f"*{suffix}")}
+                self.assertEqual(actual, set(declared))
+                for asset in declared:
+                    self.assertGreater((ELEMENT / asset).stat().st_size, 0)
 
     def test_question_example_uses_the_canonical_element_name(self):
         example = (ROOT / "question.html.example").read_text(encoding="utf-8")

@@ -1,4 +1,5 @@
 import importlib.util
+import itertools
 import pathlib
 import unittest
 
@@ -16,27 +17,20 @@ class ControllerTests(unittest.TestCase):
         rendered = CONTROLLER.render("ignored", {"manual_grading": True, "panel": "question"})
         self.assertEqual(rendered, '<span data-pl-manual-grading-enhancements hidden></span>')
 
-    def test_marker_is_not_rendered_for_student_question_panel(self):
-        self.assertEqual(CONTROLLER.render("ignored", {"panel": "question"}), "")
+    def test_activation_matrix(self):
+        # Only human manual grading of the question panel may load the client.
+        for manual, ai, panel in itertools.product(
+            (False, True, None), (False, True, None),
+            ("question", "submission", "answer", "manual_grading", None),
+        ):
+            with self.subTest(manual=manual, ai=ai, panel=panel):
+                rendered = CONTROLLER.render("ignored", {
+                    "manual_grading": manual, "ai_grading": ai, "panel": panel,
+                })
+                self.assertEqual(bool(rendered), bool(manual and not ai and panel == "question"))
 
-    def test_marker_is_not_rendered_for_non_question_panels(self):
-        for panel in ("submission", "answer", "manual_grading", None):
-            with self.subTest(panel=panel):
-                self.assertEqual(
-                    CONTROLLER.render("ignored", {"manual_grading": True, "panel": panel}), ""
-                )
-
-    def test_ai_grading_takes_precedence_over_human_manual_grading(self):
-        self.assertEqual(
-            CONTROLLER.render(
-                "ignored",
-                {"manual_grading": True, "ai_grading": True, "panel": "question"},
-            ),
-            "",
-        )
-
-    def test_missing_or_false_manual_grading_is_safe(self):
-        for data in ({}, {"manual_grading": False}, {"manual_grading": None}):
+    def test_missing_fields_do_not_activate(self):
+        for data in ({}, {"panel": "question"}, {"manual_grading": True}):
             with self.subTest(data=data):
                 self.assertEqual(CONTROLLER.render("ignored", data), "")
 

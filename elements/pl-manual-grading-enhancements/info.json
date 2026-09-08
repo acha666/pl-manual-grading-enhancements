@@ -1,15 +1,7 @@
 {
   "controller": "controller.py",
   "dependencies": {
-    "elementScripts": [
-      "src/config.js",
-      "src/contract.js",
-      "src/rubric-groups.js",
-      "src/shortcuts.js",
-      "src/attribution.js",
-      "src/view-options.js",
-      "src/main.js"
-    ],
-    "elementStyles": ["src/styles.css"]
+    "elementScripts": ["dist/main.js"],
+    "elementStyles": ["dist/styles.css"]
   }
 }

@@ -1,0 +1,10 @@
+{
+  "courseInstanceURL": "/pl/course_instance/1",
+  "assessmentId": "1",
+  "instanceQuestionId": "1",
+  "image": "prairielearn/prairielearn@sha256:802f5aa91a5bff7eab5c00dcac3ca6fe4bb092410471d1b8fab8de4695fcec59",
+  "courseSha256": "2f2274b82ba47b42a51bc5f42b1a5cc30d5cc35a6ed811781d6b7462cbafd2c2",
+  "dumpSha256": "9783ed7cd14477b5290ac610ca94c104c3055b069f6796bce10c842a31de6f31",
+  "stage": "Course synced; Dev User submitted fib.py; four-item rubric ready; waiting for manual grading; no grade yet",
+  "refresh": "npm run fixtures:upstream"
+}

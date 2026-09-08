@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0
+
+- Rebuilt the browser integration in TypeScript and bundled it into production JavaScript and CSS assets.
+- Added a release packaging workflow that produces an installable course-element ZIP from a version tag.
+- Added modular feature lifecycle management with isolated optional-feature failures and cleanup on reinitialization.
+- Added Docker-based PrairieLearn deployment tests using a reproducible PostgreSQL grading fixture.
+- Expanded browser coverage for panel refreshes, conflict-modal forms, settings, attribution, and persisted grading behavior.
+- Updated the documentation and CI workflows for local verification, pinned deployment testing, and latest-upstream compatibility checks.
+
 ## 2.0.1
 
 - Fixed the upstream compatibility workflow to use the published `setup-uv` v10.0.1 action reference.

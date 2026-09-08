@@ -2,7 +2,9 @@ name: Manual grading enhancements CI
 
 on:
   push:
+    branches: ["**"]
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: [20, 22, 24]
     timeout-minutes: 10
     steps:
       - name: Check out course element
@@ -35,18 +37,8 @@ jobs:
       - name: Install JavaScript test dependencies
         run: npm ci
 
-      - name: Run browser-behavior tests
-        run: npm test
+      - name: Verify formatting, types, bundle behavior, and controller
+        run: npm run verify
 
-      - name: Run controller tests
-        run: python -m unittest discover -s tests -p 'test_*.py' -v
-
-      - name: Run syntax and metadata checks
-        shell: bash
-        run: |
-          set -euo pipefail
-          for file in elements/pl-manual-grading-enhancements/src/*.js; do
-            node --check "$file"
-          done
-          python -m json.tool elements/pl-manual-grading-enhancements/info.json >/dev/null
-          python -m py_compile elements/pl-manual-grading-enhancements/controller.py
+  e2e:
+    uses: ./.github/workflows/e2e.yml

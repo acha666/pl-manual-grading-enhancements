@@ -27,3 +27,13 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Generated bundles and release packages
+dist/
+.ci/
+
+# Real browser reports
+test-results/
+playwright-report/
+
+# Captured browser sessions may contain production data
+*.har

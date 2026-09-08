@@ -1,115 +1,16 @@
-name: PrairieLearn upstream compatibility
+name: PrairieLearn latest upstream compatibility
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
   schedule:
-    # Weekly upstream compatibility check, Monday at 09:17 UTC.
     - cron: "17 9 * * 1"
 
 permissions:
   contents: read
 
 jobs:
-  upstream-compatibility:
-    name: Real PrairieLearn upstream E2E
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    services:
-      postgres:
-        image: pgvector/pgvector:pg17
-        env:
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    env:
-      PGHOST: localhost
-      REDIS_HOST: localhost
-
-    steps:
-      - name: Check out course element
-        uses: actions/checkout@v7
-
-      - name: Check out PrairieLearn source
-        uses: actions/checkout@v7
-        with:
-          repository: PrairieLearn/PrairieLearn
-          ref: master
-          fetch-depth: 1
-          path: .ci/prairielearn
-
-      - name: Install upstream system dependencies
-        run: |
-          sudo apt-get purge -y man-db
-          sudo apt-get install -y --no-install-recommends graphviz libgraphviz-dev
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 11.19.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: .ci/prairielearn/pnpm-lock.yaml
-
-      - name: Install PrairieLearn dependencies
-        working-directory: .ci/prairielearn
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Chromium for Playwright
-        working-directory: .ci/prairielearn
-        run: pnpm playwright install chromium --with-deps
-
-      - name: Set up Python dependencies used by PrairieLearn
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-        with:
-          enable-cache: true
-          cache-dependency-glob: .ci/prairielearn/pyproject.toml
-
-      - name: Install upstream Python dependencies
-        working-directory: .ci/prairielearn
-        env:
-          UV_LOCKED: 1
-        run: make python-deps-core
-
-      - name: Build PrairieLearn
-        working-directory: .ci/prairielearn
-        run: make build
-
-      - name: Start PrairieLearn support services
-        working-directory: .ci/prairielearn
-        run: make start-support
-
-      - name: Run compatibility test against the live upstream server
-        env:
-          PRAIRIELEARN_SOURCE_DIR: .ci/prairielearn
-        run: npm run test:upstream:e2e
-
-      - name: Upload upstream Playwright artifacts
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: prairielearn-upstream-playwright-artifacts
-          path: |
-            .ci/prairielearn/apps/prairielearn/test-results
-            .ci/prairielearn/apps/prairielearn/playwright-report
-          if-no-files-found: ignore
+  latest:
+    uses: ./.github/workflows/e2e.yml
+    with:
+      image: prairielearn/prairielearn:latest
+      # Restore saved state, then let upstream migrate it before testing.

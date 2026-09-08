@@ -1,0 +1,8 @@
+node_modules/
+dist/
+elements/pl-manual-grading-enhancements/dist/
+package-lock.json
+*.har
+.ci/
+test-results/
+playwright-report/

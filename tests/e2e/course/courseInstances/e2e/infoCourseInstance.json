@@ -1,0 +1,10 @@
+{
+  "uuid": "31a69dd9-81a1-4b17-b578-2098d20fb57a",
+  "longName": "PLMGE E2E",
+  "allowAccess": [
+    {
+      "startDate": "2000-01-01T00:00:00",
+      "endDate": "2400-01-01T00:00:00"
+    }
+  ]
+}

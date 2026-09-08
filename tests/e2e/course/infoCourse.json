@@ -1,0 +1,19 @@
+{
+  "name": "PLMGE 101",
+  "title": "Manual grading E2E",
+  "assessmentSets": [
+    {
+      "abbreviation": "HW",
+      "name": "Homework",
+      "heading": "Homeworks",
+      "color": "green1"
+    }
+  ],
+  "topics": [
+    {
+      "name": "Manual",
+      "color": "gray1",
+      "description": "Manual grading"
+    }
+  ]
+}
