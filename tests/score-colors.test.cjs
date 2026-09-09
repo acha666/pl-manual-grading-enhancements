@@ -48,4 +48,16 @@ test("colors the selected criterion score in its heading", () => {
     ).className,
     "plmge-score text-success plmge-criterion-summary-score",
   );
+  assert.equal(
+    document.querySelector(
+      "#plmge-criterion-heading-1 .plmge-criterion-summary .plmge-score",
+    ).textContent,
+    "(6/6)",
+  );
+  assert.equal(
+    document.querySelector(
+      "#plmge-criterion-heading-1 .plmge-criterion-summary .plmge-score",
+    ).className,
+    "plmge-score text-success",
+  );
 });

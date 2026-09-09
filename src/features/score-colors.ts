@@ -33,6 +33,9 @@ export class ScoreColors implements Lifecycle {
       document
         .querySelectorAll<HTMLElement>(SELECTORS.description)
         .forEach((description) => this.colorScores(description));
+      document
+        .querySelectorAll<HTMLElement>(".plmge-criterion-summary")
+        .forEach((summary) => this.colorScores(summary));
       this.colorCriterionScores();
     } else {
       this.stop();

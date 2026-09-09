@@ -66,8 +66,9 @@ into view on manual-grading pages. Disabled by default.
 
 ### Color rubric scores
 
-When enabled, score fractions are colored green for full credit, amber for
-partial credit, and red for no credit. Disabled by default.
+When enabled, score fractions in rubric items and selected criterion headings
+are colored green for full credit, amber for partial credit, and red for no
+credit. Disabled by default.
 
 ## Compatibility and failure behavior
 
