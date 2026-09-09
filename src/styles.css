@@ -92,6 +92,8 @@
   .plmge-sticky-grading {
     position: sticky;
     top: 8px;
+    /* Keep the sticky panel above response cards when the main container scrolls. */
+    z-index: 1;
     max-height: var(--plmge-card-height);
     overflow-y: auto;
     overscroll-behavior: contain;
