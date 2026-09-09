@@ -99,3 +99,64 @@
     scrollbar-gutter: stable;
   }
 }
+
+/* Scoped dark C preview. Preserve native font metrics and scrolling. */
+pre.plmge-code-preview {
+  position: relative;
+  min-width: max-content;
+  overflow: visible;
+  padding-left: calc(var(--plmge-line-digits) * 1ch + 2.5em) !important;
+  color: #e6e6e6 !important;
+  background: #212529 !important;
+  white-space: pre;
+  counter-reset: linenumber;
+}
+pre.plmge-code-preview > code {
+  position: relative;
+  color: inherit;
+  white-space: inherit;
+}
+pre.plmge-code-preview .token.comment {
+  color: #adb5bd;
+}
+pre.plmge-code-preview .token.keyword {
+  color: #c5a3ff;
+}
+pre.plmge-code-preview .token.string,
+pre.plmge-code-preview .token.char {
+  color: #b5d99c;
+}
+pre.plmge-code-preview .token.number,
+pre.plmge-code-preview .token.constant {
+  color: #f2c078;
+}
+pre.plmge-code-preview .token.function,
+pre.plmge-code-preview .token.class-name {
+  color: #8cc8f0;
+}
+pre.plmge-code-preview .token.macro {
+  color: #f0b3c5;
+}
+
+/* Scoped layout for Prism's official Line Numbers plugin. Bootstrap p-3
+   requires the padding override above. Widen the gutter for long files. */
+pre.plmge-code-preview .line-numbers-rows {
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  left: calc(-1 * (var(--plmge-line-digits) * 1ch + 1.5em));
+  width: calc(var(--plmge-line-digits) * 1ch + 0.5em);
+  border-right: 1px solid #596169;
+  user-select: none;
+}
+pre.plmge-code-preview .line-numbers-rows > span {
+  display: block;
+  counter-increment: linenumber;
+}
+pre.plmge-code-preview .line-numbers-rows > span::before {
+  content: counter(linenumber);
+  display: block;
+  padding-right: 0.5em;
+  color: #adb5bd;
+  text-align: right;
+}

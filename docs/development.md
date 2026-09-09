@@ -18,7 +18,7 @@ as you edit; reload the grading page to use the changes. There is no standalone
 application server because the element runs inside PrairieLearn.
 
 The toolchain is TypeScript, esbuild, Prettier, and the existing Node test runner
-with jsdom. No frontend framework or runtime dependency is shipped. Source files
+with jsdom. No frontend framework is shipped. Prism core, C-like, C, and the official Line Numbers plugin are bundled for the optional C preview feature. Source files
 use standard ES module imports; esbuild emits a single classic-script bundle for
 PrairieLearn's element loader. Generated assets are not committed.
 
@@ -53,6 +53,14 @@ the grouping implementation. It owns generated badges; the shared `RubricItem`
 contract describes upstream markup, not feature-created UI state. Features share
 `core/submission.ts` to identify grading actions consistently.
 
+`CodePreview` observes submission blocks only while enabled and decorates native
+`.c` previews after their text loads. It preserves native controls and restores
+plain text on cleanup. `core/prism.ts` loads the bundled components on first use,
+disables automatic highlighting, and temporarily exposes its Prism instance only
+during synchronous component loading/highlighting so an existing host Prism is
+preserved. The line-number plugin is initialized once per page. Its scoped CSS
+in `styles.css` retains native font metrics and avoids soft wrapping.
+
 ## Adding a feature
 
 Implement the `Lifecycle` interface (`start()` / `stop()`) in `src/features/` and
@@ -86,7 +94,7 @@ assertions. `npm run verify` runs the fast checks without requiring Docker.
 See [deployment tests](testing.md) for Docker setup, fixture maintenance, and upstream compatibility checks.
 
 Browser tests are split by feature (`rubric-groups`, `shortcuts`, `attribution`,
-`view-options`, `panel-layout`, `answer-preview`, and `score-colors`).
+`view-options`, `panel-layout`, `answer-preview`, `code-preview`, and `score-colors`).
 `browser-integration.test.cjs` covers activation, contract failures, and panel
 refreshes; `runtime.test.cjs` covers feature startup and cleanup.
 `tests/fixtures.cjs` owns the shared page markup, production bundle loading,

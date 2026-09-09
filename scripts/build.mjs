@@ -26,7 +26,12 @@ if (watch) {
 if (process.argv.includes("--package")) {
   const destination = "dist/elements/pl-manual-grading-enhancements";
   await mkdir(destination, { recursive: true });
-  for (const file of ["controller.py", "info.json", "dist"]) {
+  for (const file of [
+    "controller.py",
+    "info.json",
+    "THIRD_PARTY_NOTICES.txt",
+    "dist",
+  ]) {
     await cp(
       `elements/pl-manual-grading-enhancements/${file}`,
       `${destination}/${file}`,

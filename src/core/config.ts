@@ -16,4 +16,5 @@ export const SELECTORS = Object.freeze({
   submissionBlock: '[data-testid="submission-block"]',
   submissionBody: ".js-submission-body",
   filePreviewItem: ".js-file-preview-item",
+  filePreviewCode: ".file-preview-container > pre > code",
 });

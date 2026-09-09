@@ -14,7 +14,7 @@ test("the view options menu is created from the Grading header contract", () => 
   const menu = document.querySelector(".plmge-options-menu");
 
   assert.ok(menu);
-  assert.equal(menu.querySelectorAll("input[data-setting]").length, 5);
+  assert.equal(menu.querySelectorAll("input[data-setting]").length, 6);
   assert.equal(
     menu.querySelector('[data-setting="appendGraderName"]').checked,
     true,
@@ -99,6 +99,7 @@ test("all options persist independently across page loads and unknown keys are i
     appendGraderName: false,
     latestAnswerPreview: true,
     scoreColors: true,
+    codePreview: false,
     unknownOption: true,
   };
   const key = "pl.manualGradingEnhancements.settings.v1";
@@ -108,7 +109,7 @@ test("all options persist independently across page loads and unknown keys are i
   fireDOMContentLoaded(dom.window);
   const menu = dom.window.document.querySelector(".plmge-options-menu");
   const inputs = [...menu.querySelectorAll("input[data-setting]")];
-  assert.equal(inputs.length, 5);
+  assert.equal(inputs.length, 6);
   for (const input of inputs) {
     assert.equal(input.checked, stored[input.dataset.setting]);
     input.click();

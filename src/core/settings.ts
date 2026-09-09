@@ -32,6 +32,11 @@ export const SETTING_DEFINITIONS = {
     label: "Color rubric scores",
     help: "Color score fractions by the amount of credit awarded.",
   },
+  codePreview: {
+    defaultValue: false,
+    label: "Highlight C code previews",
+    help: "Show C syntax colors and line numbers in submitted .c file previews.",
+  },
 } satisfies Record<string, SettingDefinition>;
 
 export type SettingName = keyof typeof SETTING_DEFINITIONS;

@@ -2,10 +2,12 @@
 
 ## Unreleased
 
+- Added **Highlight C code previews**, disabled by default, with bundled Prism C syntax highlighting, a dark palette, and line numbers in native submitted-file previews. Disabling the option restores plain text.
+
 - Fully expand the latest answer’s code preview after its file finishes loading.
 - Keep Grading and Staff information together in the sticky, scrolling column so the cards do not overlap.
 
-- Enabled all manual-grading options by default except **Open latest answer preview**.
+- Enabled all manual-grading options by default except **Open latest answer preview** and **Highlight C code previews**.
 
 ## 3.2.0
 

@@ -15,6 +15,7 @@ import { PanelLayout } from "./panel-layout.js";
 import { ViewOptions } from "./view-options.js";
 import { LatestAnswerPreview } from "./latest-answer-preview.js";
 import { ScoreColors } from "./score-colors.js";
+import { CodePreview } from "./code-preview.js";
 
 type Report = (name: string, error: unknown, critical: boolean) => void;
 
@@ -26,6 +27,7 @@ export function startFeatures(contract: Contract, report: Report) {
   let attribution: FeedbackAttribution | null = null;
   let latestAnswerPreview: LatestAnswerPreview | null = null;
   let scoreColors: ScoreColors | null = null;
+  let codePreview: CodePreview | null = null;
 
   const appendAttribution = () => {
     if (!settings.appendGraderName || !attribution) return;
@@ -103,6 +105,14 @@ export function startFeatures(contract: Contract, report: Report) {
     "Latest answer preview",
     () => new LatestAnswerPreview(() => settings.latestAnswerPreview),
   );
+  codePreview = runtime.mount(
+    "C code previews",
+    () =>
+      new CodePreview(
+        () => settings.codePreview,
+        (error) => report("C code previews", error, false),
+      ),
+  );
   scoreColors = runtime.mount(
     "Score colors",
     () => new ScoreColors(() => settings.scoreColors),
@@ -129,6 +139,7 @@ export function startFeatures(contract: Contract, report: Report) {
       rubric?.setCollapseEnabled(settings.collapseCompleted);
     if (name === "latestAnswerPreview") latestAnswerPreview?.sync();
     if (name === "scoreColors") scoreColors?.sync();
+    if (name === "codePreview") codePreview?.sync();
   }
 
   return runtime;

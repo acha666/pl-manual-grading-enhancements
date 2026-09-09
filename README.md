@@ -70,6 +70,21 @@ Enabled by default. Score fractions in rubric items and selected criterion headi
 are colored green for full credit, amber for partial credit, and red for no
 credit.
 
+### Highlight C code previews
+
+Disabled by default. Enable this option to add C syntax colors and line numbers
+to submitted `.c` files in **Show preview**. The preview uses a dark background,
+readable comment colors, and horizontal scrolling for long lines. Line numbers
+start at 1 and are excluded from the code text.
+
+Works with both manually opened previews and **Open latest answer preview**.
+Download and Expand/Collapse continue to use PrairieLearn's controls. Turning
+the option off restores plain text. Other file types are unchanged.
+
+Prism core, C-like, C, and the official Line Numbers plugin are bundled with the
+element; no CDN or additional file requests are used. The included
+`THIRD_PARTY_NOTICES.txt` contains the Prism license.
+
 ## Compatibility and failure behavior
 
 The integration targets PrairieLearn's current manual-grading markup and Bootstrap dropdown support. It validates the activation marker, the main grading panel, the grading form, rubric inputs, and required controls before changing the page. It also reinitializes after PrairieLearn refreshes the grading panel in place, such as after rubric or AI-grading updates.
