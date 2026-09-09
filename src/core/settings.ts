@@ -25,7 +25,7 @@ export const SETTING_DEFINITIONS = {
   latestAnswerPreview: {
     defaultValue: false,
     label: "Open latest answer preview",
-    help: "Open and scroll to the newest submitted answer's file preview.",
+    help: "Expand and scroll to the newest submitted answer's file preview.",
   },
   scoreColors: {
     defaultValue: false,

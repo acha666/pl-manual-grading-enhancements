@@ -1,7 +1,7 @@
 import { SELECTORS } from "../core/config.js";
 import type { Lifecycle } from "../core/types.js";
 
-/** Expands the newest submission's file preview and brings it into view once. */
+/** Expands the newest submission and its file preview, then brings it into view once. */
 export class LatestAnswerPreview implements Lifecycle {
   private timer: number | null = null;
   private enabled = false;
@@ -36,10 +36,14 @@ export class LatestAnswerPreview implements Lifecycle {
     const blocks = [
       ...document.querySelectorAll<HTMLElement>(SELECTORS.submissionBlock),
     ];
-    const latest = blocks
+    const numberedBlocks = blocks
       .map((block) => ({ block, number: this.answerNumber(block) }))
       .filter(({ number }) => number !== null)
-      .sort((a, b) => (b.number as number) - (a.number as number))[0]?.block;
+      .sort((a, b) => (b.number as number) - (a.number as number));
+    // Current PrairieLearn pages (as captured in the HAR) omit the answer
+    // number from the heading. The submission id is a useful fallback; when
+    // it is unavailable, the last block is newest in the rendered list.
+    const latest = numberedBlocks[0]?.block ?? blocks.at(-1);
     if (!latest || latest.dataset.plmgeLatestPreviewInitialized) return;
 
     const body = latest.querySelector<HTMLElement>(SELECTORS.submissionBody);
@@ -73,6 +77,12 @@ export class LatestAnswerPreview implements Lifecycle {
     const match = block
       .querySelector("h2")
       ?.textContent?.match(/submitted answer\s+(\d+)/i);
-    return match ? Number(match[1]) : null;
+    if (match) return Number(match[1]);
+
+    const submissionId = block.querySelector<HTMLElement>(
+      SELECTORS.submissionBody,
+    )?.dataset.submissionId;
+    const id = submissionId ?? block.id.match(/submission-(\d+)/)?.[1];
+    return id ? Number(id) : null;
   }
 }
