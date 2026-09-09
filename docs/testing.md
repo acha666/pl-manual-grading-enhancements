@@ -25,7 +25,8 @@ The element's current build is copied fresh on every run.
 
 The E2E suite covers this element: activation only on the staff grading page,
 grouping and required selections, panel replacement, settings, attribution, and
-persisted grading. It edits an existing rubric item to trigger panel replacement,
+persisted grading. Layout checks cover sticky grading, viewport sizing, expanded
+rubric settings, and narrow screens. It edits an existing rubric item to trigger panel replacement,
 but does not create courses, upload files, or answer questions. Those operations
 belong exclusively to the state-update procedure in `tests/state/refresh.setup.ts`,
 which is not discovered by the normal E2E suite.

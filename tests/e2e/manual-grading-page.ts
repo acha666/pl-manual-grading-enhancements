@@ -14,8 +14,9 @@ export function manualGradingPage(page: Page) {
   );
   const items = form.locator("input.js-selectable-rubric-item");
   const menu = page.locator(".plmge-options-menu");
-  const layout = page.locator(".plmge-layout");
-  const panes = page.locator(".plmge-scroll-pane");
+  const gradingCard = page
+    .locator(".card")
+    .filter({ has: page.locator(".js-main-grading-panel") });
   const errors = page.locator(".plmge-feature-messages");
   const gradeButton = page.locator("#grade-button");
 
@@ -26,8 +27,7 @@ export function manualGradingPage(page: Page) {
     form,
     items,
     menu,
-    layout,
-    panes,
+    gradingCard,
     errors,
     gradeButton,
     rubricItem(description: string) {

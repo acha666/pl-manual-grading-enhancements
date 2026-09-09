@@ -9,8 +9,8 @@ interface SettingDefinition {
 export const SETTING_DEFINITIONS = {
   splitScrolling: {
     defaultValue: false,
-    label: "Independent panel scrolling",
-    help: "Scroll the response and Grading panes separately on desktop.",
+    label: "Sticky grading panel",
+    help: "Keep the Grading card in view with its own scrolling on desktop.",
   },
   collapseCompleted: {
     defaultValue: false,

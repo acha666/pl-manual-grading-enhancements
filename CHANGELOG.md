@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Desktop grading supports a sticky, independently scrolling Grading card sized to the main content viewport. Rubric settings and student answers remain in the normal page flow.
+
 ## 3.1.2
 
 - Refactored manual-grading features into independently validated modules with isolated optional-feature failures and safer panel refresh cleanup.

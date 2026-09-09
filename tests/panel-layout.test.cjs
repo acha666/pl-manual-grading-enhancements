@@ -1,7 +1,6 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const {
-  boot,
   createPage,
   fireDOMContentLoaded,
   loadBundle,
@@ -17,49 +16,65 @@ test("panel layout remains available without Bootstrap dropdown support", () => 
   );
   loadBundle(window);
   fireDOMContentLoaded(window);
-  assert.ok(window.document.querySelector(".plmge-split-scroll"));
+  assert.ok(window.document.querySelector(".plmge-sticky-grading"));
   assert.equal(window.document.querySelector(".plmge-options-menu"), null);
   assert.equal(window.document.querySelectorAll(".plmge-criterion").length, 2);
 });
 
-test("panel resizing respects disabled settings and cancels pending work on refresh", async () => {
-  const dom = boot();
+test("card sizing follows the main container and cleans up on disable and refresh", async () => {
+  const dom = createPage();
   const { window } = dom;
   const { document } = window;
-  const frames = new Map();
-  let nextFrame = 0;
-  window.requestAnimationFrame = (callback) => {
-    frames.set(++nextFrame, callback);
-    return nextFrame;
+  const observers = new Set();
+  window.ResizeObserver = class {
+    constructor(callback) {
+      this.callback = callback;
+    }
+    observe(target) {
+      this.target = target;
+      observers.add(this);
+    }
+    disconnect() {
+      observers.delete(this);
+    }
   };
-  window.cancelAnimationFrame = (id) => frames.delete(id);
+  const container = document.querySelector(".app-main-container");
+  let height = 800;
+  Object.defineProperty(container, "clientHeight", { get: () => height });
+  loadBundle(window);
+  fireDOMContentLoaded(window);
   const option = () =>
     document.querySelector('[data-setting="splitScrolling"]');
-  const row = document.querySelector(".plmge-layout");
+  const card = document
+    .querySelector(".js-main-grading-panel")
+    .closest(".card");
   option().click();
-  assert.ok(row.style.getPropertyValue("--plmge-pane-height"));
-  window.dispatchEvent(new window.Event("resize"));
-  window.dispatchEvent(new window.Event("resize"));
-  assert.equal(frames.size, 1);
+  assert.equal(card.style.getPropertyValue("--plmge-card-height"), "784px");
+  assert.equal(observers.size, 1);
+  assert.equal([...observers][0].target, container);
+  height = 600;
+  for (const observer of observers) observer.callback();
+  assert.equal(card.style.getPropertyValue("--plmge-card-height"), "584px");
+  assert.equal(
+    document.querySelector("#response-column").getAttribute("style"),
+    null,
+  );
   option().click();
-  for (const callback of frames.values()) callback();
-  frames.clear();
-  assert.equal(row.style.getPropertyValue("--plmge-pane-height"), "");
-  assert.equal(row.classList.contains("plmge-split-scroll"), false);
+  assert.equal(observers.size, 0);
+  assert.equal(card.style.getPropertyValue("--plmge-card-height"), "");
+  assert.equal(card.classList.contains("plmge-sticky-grading"), false);
 
   option().click();
-  window.dispatchEvent(new window.Event("resize"));
-  assert.equal(frames.size, 1);
+  const previousObserver = [...observers][0];
   document
     .querySelector(".js-main-grading-panel")
     .append(document.createElement("div"));
   await new Promise((resolve) => window.queueMicrotask(resolve));
-  assert.equal(frames.size, 0);
+  assert.equal(observers.size, 1);
+  assert.equal(observers.has(previousObserver), false);
   assert.equal(option().checked, true);
-  assert.ok(row.classList.contains("plmge-split-scroll"));
+  assert.ok(card.classList.contains("plmge-sticky-grading"));
   assert.equal(document.querySelector(".plmge-feature-messages"), null);
-  window.dispatchEvent(new window.Event("resize"));
-  assert.equal(frames.size, 1);
 });
 
 test("unsupported pane markup disables only the scrolling option", () => {
@@ -78,7 +93,7 @@ test("unsupported pane markup disables only the scrolling option", () => {
       .disabled,
     false,
   );
-  assert.equal(window.document.querySelector(".plmge-layout"), null);
+  assert.equal(window.document.querySelector(".plmge-sticky-grading"), null);
   assert.equal(window.document.querySelectorAll(".plmge-criterion").length, 2);
   assert.match(
     window.document.querySelector(".plmge-feature-messages").textContent,

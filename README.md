@@ -39,9 +39,9 @@ Grouped criteria have these rules:
 
 The **Manual grading options** menu is available in the Grading card header. Settings are stored in local storage for the current browser profile.
 
-### Independent panel scrolling
+### Sticky grading panel
 
-On desktop widths, the response and Grading panes scroll independently. Narrow screens retain the normal document layout.
+On desktop widths, the Grading card sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
 
 ### Collapse completed criteria
 

@@ -89,13 +89,10 @@
 }
 
 @media (min-width: 992px) {
-  .plmge-layout.plmge-split-scroll {
-    height: var(--plmge-pane-height);
-    overflow: hidden;
-  }
-
-  .plmge-layout.plmge-split-scroll > .plmge-scroll-pane {
-    height: 100%;
+  .plmge-sticky-grading {
+    position: sticky;
+    top: 8px;
+    max-height: var(--plmge-card-height);
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;

@@ -55,7 +55,12 @@ export function buildPanelLayoutContract(contract: Contract) {
     leftColumns.length === 1,
     `Expected one left response column; found ${leftColumns.length}.`,
   );
-  return { leftColumn: leftColumns[0] as HTMLElement, rightColumn, layoutRow };
+  const scrollContainer = layoutRow.closest<HTMLElement>(".app-main-container");
+  requireCondition(
+    scrollContainer,
+    "The Grading row is not inside the main scroll container.",
+  );
+  return { gradingCard, scrollContainer };
 }
 
 export function buildAttributionContract(contract: Contract) {

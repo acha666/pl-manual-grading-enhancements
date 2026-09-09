@@ -42,14 +42,23 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(criteria).toHaveCount(2);
     await expect(grading.feedback).toHaveValue("");
 
-    await grading.setOption("Independent panel scrolling", true);
-    await expect(grading.layout).toHaveClass(/plmge-split-scroll/);
+    await grading.setOption("Sticky grading panel", true);
+    await expect(grading.gradingCard).toHaveClass(/plmge-sticky-grading/);
     await page.getByRole("button", { name: "Manual grading options" }).click();
 
     // Saving an existing rubric triggers the upstream panel replacement that
     // the element must handle. Course setup and rubric creation are frozen.
+    const cardMaxHeight = await grading.gradingCard.evaluate(
+      (card) => getComputedStyle(card).maxHeight,
+    );
     await page.locator('[aria-label="Toggle rubric settings"]').click();
     await expect(page.locator("#rubric-setting")).toBeVisible();
+    await expect(grading.gradingCard).toHaveCSS("max-height", cardMaxHeight);
+    await expect(grading.gradingCard).toHaveCSS("position", "sticky");
+    await expect(page.locator(".col-lg-8.col-12")).not.toHaveCSS(
+      "overflow-y",
+      "auto",
+    );
     await page
       .locator('#rubric-editor table[aria-label="Rubric items"]')
       .getByRole("spinbutton", { name: "Points", exact: true })
@@ -72,8 +81,7 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(criteria).toHaveCount(2);
     await expect(grading.errors).toHaveCount(0);
     await expect(grading.menu).toHaveCount(1);
-    await expect(grading.layout).toHaveClass(/plmge-split-scroll/);
-    await expect(grading.panes).toHaveCount(2);
+    await expect(grading.gradingCard).toHaveClass(/plmge-sticky-grading/);
     await expect(criteria.nth(0)).toContainText("Opening");
     await expect(criteria.nth(1)).toContainText("Headers");
     await expect(
@@ -111,25 +119,75 @@ test("complete manual grading workflow on the official Docker deployment", async
     await grading.openOptions();
     await expect(
       grading.menu.getByRole("checkbox", {
-        name: "Independent panel scrolling",
+        name: "Sticky grading panel",
       }),
     ).toBeChecked();
-    await grading.setOption("Independent panel scrolling", false);
-    await expect(grading.layout).not.toHaveClass(/plmge-split-scroll/);
-    await expect(grading.layout).toHaveCSS("--plmge-pane-height", "");
-    await grading.setOption("Independent panel scrolling", true);
-    await expect(grading.panes.first()).toHaveCSS("overflow-y", "auto");
-    const originalHeight = await grading.panes
-      .first()
-      .evaluate((pane) => pane.clientHeight);
+    await grading.setOption("Sticky grading panel", false);
+    await expect(grading.gradingCard).not.toHaveClass(/plmge-sticky-grading/);
+    await expect(grading.gradingCard).toHaveCSS("--plmge-card-height", "");
+    await grading.setOption("Sticky grading panel", true);
+    await expect(grading.gradingCard).toHaveCSS("overflow-y", "auto");
+    await test.step("Keep grading visible while reading long answers", async () => {
+      const response = page.locator(".col-lg-8.col-12");
+      const spacer = await response.evaluateHandle((column) => {
+        const spacer = document.createElement("div");
+        spacer.style.height = "2000px";
+        column.append(spacer);
+        return spacer;
+      });
+      try {
+        await grading.gradingCard.evaluate((card) => {
+          const container = card.closest(".app-main-container")!;
+          container.scrollTop +=
+            card.getBoundingClientRect().top -
+            container.getBoundingClientRect().top +
+            200;
+        });
+        await expect
+          .poll(() =>
+            grading.gradingCard.evaluate((card) => {
+              const container = card.closest(".app-main-container")!;
+              return Math.round(
+                card.getBoundingClientRect().top -
+                  container.getBoundingClientRect().top,
+              );
+            }),
+          )
+          .toBe(8);
+        const outerScroll = await page
+          .locator(".app-main-container")
+          .evaluate((container) => container.scrollTop);
+        await grading.gradingCard.evaluate((card) => {
+          card.scrollTop = card.scrollHeight;
+        });
+        await expect
+          .poll(() =>
+            page
+              .locator(".app-main-container")
+              .evaluate((container) => container.scrollTop),
+          )
+          .toBe(outerScroll);
+        await expect(grading.gradeButton).toBeVisible();
+      } finally {
+        await spacer.evaluate((element) => element.remove());
+        await spacer.dispose();
+      }
+    });
+    const originalHeight = await grading.gradingCard.evaluate((pane) =>
+      parseFloat(getComputedStyle(pane).maxHeight),
+    );
     await page.setViewportSize({ width: 1280, height: 1100 });
     await expect
-      .poll(() => grading.panes.first().evaluate((pane) => pane.clientHeight))
+      .poll(() =>
+        grading.gradingCard.evaluate((pane) =>
+          parseFloat(getComputedStyle(pane).maxHeight),
+        ),
+      )
       .toBeGreaterThan(originalHeight);
     await page.setViewportSize({ width: 600, height: 900 });
-    await expect(grading.panes.first()).not.toHaveCSS("overflow-y", "auto");
+    await expect(grading.gradingCard).not.toHaveCSS("overflow-y", "auto");
     await page.setViewportSize({ width: 1280, height: 900 });
-    await expect(grading.panes.first()).toHaveCSS("overflow-y", "auto");
+    await expect(grading.gradingCard).toHaveCSS("overflow-y", "auto");
     await grading.setOption("Collapse completed criteria", true);
     await expect(criteria.nth(0).locator(".plmge-criterion-body")).toBeHidden();
     await expect(criteria.nth(1).locator(".plmge-criterion-body")).toBeHidden();
@@ -163,9 +221,8 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(grading.rubricItem("Adequate")).toBeChecked();
     await expect(grading.rubricItem("All required")).toBeChecked();
     await expect(grading.rubricItem("Excellent")).not.toBeChecked();
-    await expect(
-      page.locator(".plmge-layout.plmge-split-scroll"),
-    ).toBeVisible();
+    await expect(grading.gradingCard).toBeVisible();
+    await expect(grading.gradingCard).toHaveClass(/plmge-sticky-grading/);
   });
   expect(browserErrors).toEqual([]);
 });

@@ -140,7 +140,7 @@ function pageHtml({
         ${extraMarker ? "<span data-pl-manual-grading-enhancements hidden></span>" : ""}
         ${aiGrading ? "" : "<span data-pl-manual-grading-enhancements hidden></span>"}
         <nav id="username-nav" data-view-type="instructor"><button id="navbarDropdown">Ada Lovelace <span class="badge">Instructor</span></button></nav>
-        ${view}
+        <div class="app-main-container">${view}</div>
         ${conflict}
       </body>
     </html>`;
@@ -157,6 +157,10 @@ function createPage(options = {}) {
   });
   const { window } = dom;
 
+  window.ResizeObserver = class ResizeObserver {
+    observe() {}
+    disconnect() {}
+  };
   window.bootstrap = { Dropdown: class Dropdown {} };
   window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0);
   window.cancelAnimationFrame = (id) => window.clearTimeout(id);
