@@ -1,7 +1,7 @@
 import type { PanelLayoutContract } from "../core/feature-contracts.js";
 import type { Lifecycle } from "../core/types.js";
 
-/** Keeps the sticky Grading card within the main scroll container. */
+/** Keeps the sticky grading column within the main scroll container. */
 export class PanelLayout implements Lifecycle {
   private observer: ResizeObserver | null = null;
 
@@ -18,9 +18,9 @@ export class PanelLayout implements Lifecycle {
   sync() {
     this.stop();
     if (!this.isEnabled()) return;
-    const { gradingCard, scrollContainer } = this.contract;
+    const { rightColumn, scrollContainer } = this.contract;
     this.updateHeight();
-    gradingCard.classList.add("plmge-sticky-grading");
+    rightColumn.classList.add("plmge-sticky-grading");
     this.observer = new ResizeObserver(() => {
       try {
         this.updateHeight();
@@ -34,13 +34,13 @@ export class PanelLayout implements Lifecycle {
   stop() {
     this.observer?.disconnect();
     this.observer = null;
-    this.contract.gradingCard.classList.remove("plmge-sticky-grading");
-    this.contract.gradingCard.style.removeProperty("--plmge-card-height");
+    this.contract.rightColumn.classList.remove("plmge-sticky-grading");
+    this.contract.rightColumn.style.removeProperty("--plmge-card-height");
   }
 
   private updateHeight() {
-    const { gradingCard, scrollContainer } = this.contract;
-    gradingCard.style.setProperty(
+    const { rightColumn, scrollContainer } = this.contract;
+    rightColumn.style.setProperty(
       "--plmge-card-height",
       `${Math.max(0, scrollContainer.clientHeight - 16)}px`,
     );

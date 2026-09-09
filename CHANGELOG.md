@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fully expand the latest answer’s code preview after its file finishes loading.
+- Keep Grading and Staff information together in the sticky, scrolling column so the cards do not overlap.
+
 - Enabled all manual-grading options by default except **Open latest answer preview**.
 
 ## 3.2.0

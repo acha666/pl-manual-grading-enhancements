@@ -108,3 +108,48 @@ test("expands the newest answer when its heading has no answer number", async ()
   assert.equal(previewClicks, 1);
   assert.equal(newest.dataset.plmgeLatestPreviewInitialized, "true");
 });
+
+test("fully expands asynchronously loaded code once and stops watching when disabled", async () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div data-testid="submission-block">
+      <h2>Submitted answer 1</h2>
+      <div class="js-submission-body">
+        <div class="js-file-preview-item">
+          <button data-bs-toggle="collapse" aria-expanded="false">Show preview</button>
+          <div class="file-preview-container"></div>
+          <button class="file-preview-expand d-none">Expand</button>
+        </div>
+      </div>
+    </div>`,
+  );
+  const expand = document.querySelector(".file-preview-expand");
+  const container = document.querySelector(".file-preview-container");
+  let clicks = 0;
+  expand.addEventListener("click", () => {
+    clicks++;
+    container.style.maxHeight = "none";
+  });
+  loadBundle(dom.window);
+  fireDOMContentLoaded(dom.window);
+  const option = document.querySelector('[data-setting="latestAnswerPreview"]');
+  option.click();
+  assert.equal(clicks, 0);
+  expand.classList.remove("d-none");
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 10));
+  assert.equal(clicks, 1);
+  assert.equal(container.style.maxHeight, "none");
+  option.click();
+  option.click();
+  assert.equal(clicks, 1, "does not collapse an already expanded preview");
+  option.click();
+  container.style.removeProperty("max-height");
+  expand.classList.add("d-none");
+  option.click();
+  option.click();
+  expand.classList.remove("d-none");
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 10));
+  assert.equal(clicks, 1, "pending expansion is cancelled on disable");
+});

@@ -47,7 +47,7 @@ test("card sizing follows the main container and cleans up on disable and refres
     document.querySelector('[data-setting="splitScrolling"]');
   const card = document
     .querySelector(".js-main-grading-panel")
-    .closest(".card");
+    .closest(".col-lg-4");
   assert.equal(card.style.getPropertyValue("--plmge-card-height"), "784px");
   assert.equal(observers.size, 1);
   assert.equal([...observers][0].target, container);

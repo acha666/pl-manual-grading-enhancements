@@ -41,7 +41,7 @@ The **Manual grading options** menu is available in the Grading card header. Set
 
 ### Sticky grading panel
 
-Enabled by default. On desktop widths, the Grading card sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
+Enabled by default. On desktop widths, the right column containing Grading and Staff information sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
 
 ### Collapse completed criteria
 

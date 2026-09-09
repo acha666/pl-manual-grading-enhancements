@@ -60,7 +60,7 @@ export function buildPanelLayoutContract(contract: Contract) {
     scrollContainer,
     "The Grading row is not inside the main scroll container.",
   );
-  return { gradingCard, scrollContainer };
+  return { rightColumn, scrollContainer };
 }
 
 export function buildAttributionContract(contract: Contract) {

@@ -6,6 +6,7 @@ export class LatestAnswerPreview implements Lifecycle {
   private timer: number | null = null;
   private enabled = false;
   private initializedBlock: HTMLElement | null = null;
+  private previewObserver: MutationObserver | null = null;
 
   constructor(private isEnabled: () => boolean) {}
 
@@ -14,6 +15,8 @@ export class LatestAnswerPreview implements Lifecycle {
   }
 
   stop() {
+    this.previewObserver?.disconnect();
+    this.previewObserver = null;
     if (this.timer !== null) {
       window.clearTimeout(this.timer);
       this.timer = null;
@@ -61,6 +64,31 @@ export class LatestAnswerPreview implements Lifecycle {
 
     latest.dataset.plmgeLatestPreviewInitialized = "true";
     this.initializedBlock = latest;
+    const previewItem = previewToggle.closest<HTMLElement>(
+      SELECTORS.filePreviewItem,
+    )!;
+    const expandCode = () => {
+      const expandButton = previewItem.querySelector<HTMLButtonElement>(
+        ".file-preview-expand:not(.d-none)",
+      );
+      if (!expandButton) return;
+      this.previewObserver?.disconnect();
+      this.previewObserver = null;
+      const container = previewItem.querySelector<HTMLElement>(
+        ".file-preview-container",
+      );
+      if (container && container.style.maxHeight !== "none") {
+        expandButton.click();
+      }
+    };
+    // PrairieLearn reveals Expand only after the asynchronous file load.
+    this.previewObserver = new MutationObserver(expandCode);
+    this.previewObserver.observe(previewItem, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    expandCode();
     if (previewToggle.getAttribute("aria-expanded") !== "true") {
       previewToggle.click();
     }
