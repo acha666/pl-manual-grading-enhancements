@@ -6,6 +6,7 @@ import { isGradeSubmission } from "../core/submission.js";
 export class RubricGroups implements Lifecycle {
   private criteria: CriterionView[] = [];
   private internalChange = false;
+  private manuallyExpanded = new Set<CriterionView>();
   private errorBox: HTMLDivElement | null = null;
   private listeners: (() => void)[] = [];
 
@@ -53,9 +54,11 @@ export class RubricGroups implements Lifecycle {
     for (const criterion of this.criteria) {
       const headingHandler = () => {
         if (!this.settings.collapseCompleted) return;
-        criterion.setExpanded(
-          criterion.heading.getAttribute("aria-expanded") !== "true",
-        );
+        const expanded =
+          criterion.heading.getAttribute("aria-expanded") !== "true";
+        criterion.setExpanded(expanded);
+        if (expanded) this.manuallyExpanded.add(criterion);
+        else this.manuallyExpanded.delete(criterion);
         this.onStateChanged();
       };
       criterion.heading.addEventListener("click", headingHandler);
@@ -83,6 +86,7 @@ export class RubricGroups implements Lifecycle {
     this.listeners = [];
     for (const criterion of this.criteria) criterion.stop();
     this.criteria = [];
+    this.manuallyExpanded.clear();
     this.errorBox?.remove();
     this.errorBox = null;
   }
@@ -107,7 +111,8 @@ export class RubricGroups implements Lifecycle {
     criterion.refresh();
     if (
       this.settings.collapseCompleted &&
-      criterion.selectedItems().length === 1
+      criterion.selectedItems().length === 1 &&
+      !this.manuallyExpanded.has(criterion)
     ) {
       criterion.setExpanded(false);
     }
@@ -151,7 +156,10 @@ export class RubricGroups implements Lifecycle {
 
       if (!enabled) {
         criterion.setExpanded(true);
-      } else if (criterion.selectedItems().length === 1) {
+      } else if (
+        criterion.selectedItems().length === 1 &&
+        !this.manuallyExpanded.has(criterion)
+      ) {
         criterion.setExpanded(false);
       } else if (!initial) {
         criterion.setExpanded(true);

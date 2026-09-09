@@ -45,7 +45,7 @@ On desktop widths, the Grading card sticks near the top of the main content area
 
 ### Collapse completed criteria
 
-Completed criteria collapse after one item is selected. Their headings remain available for changes.
+Completed criteria collapse after one item is selected. Their headings remain available for changes; a criterion that you manually expand stays open while changing its selection.
 
 When enabled, digits `1` through `9`, followed by `0`, are assigned to visible grouped items in document order. Digit shortcuts already assigned to ungrouped items remain reserved.
 

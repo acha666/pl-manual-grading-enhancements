@@ -25,6 +25,28 @@ test("collapse mode hides completed criteria and remaps only grouped shortcuts",
   assert.equal(document.querySelector('[value="b1"]').checked, true);
 });
 
+test("collapse mode does not re-collapse a criterion after it is manually expanded", () => {
+  const dom = boot();
+  const { document } = dom.window;
+  document.querySelector('[data-setting="collapseCompleted"]').click();
+
+  const first = document.querySelector('[value="a1"]');
+  first.click();
+  const criterion = first.closest(".plmge-criterion");
+  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, true);
+
+  criterion.querySelector(".plmge-criterion-heading").click();
+  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  const collapse = document.querySelector('[data-setting="collapseCompleted"]');
+  collapse.click();
+  collapse.click();
+  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  document.querySelector('[value="a2"]').click();
+  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  document.querySelector('[value="a1"]').click();
+  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+});
+
 test("typing, modifiers, repeats, and open modals do not trigger rubric shortcuts", () => {
   const { window } = boot();
   const { document } = window;

@@ -5,6 +5,7 @@
 - Desktop grading supports a sticky, independently scrolling Grading card sized to the main content viewport. Rubric settings and student answers remain in the normal page flow.
 - Fixed the sticky Grading card stacking order so it remains visible above response cards while scrolling.
 - Fixed **Open latest answer preview** on current PrairieLearn pages by expanding the newest answer and its file preview when the answer heading has no number.
+- Fixed **Collapse completed criteria** from re-collapsing a criterion after it was manually expanded.
 - Fixed **Color rubric scores** so score fractions in selected criterion headings are colored too.
 
 ## 3.1.2
