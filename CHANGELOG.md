@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0
 
 - Desktop grading supports a sticky, independently scrolling Grading card sized to the main content viewport. Rubric settings and student answers remain in the normal page flow.
 - Fixed the sticky Grading card stacking order so it remains visible above response cards while scrolling.
