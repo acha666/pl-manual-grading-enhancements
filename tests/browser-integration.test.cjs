@@ -184,7 +184,6 @@ test("refreshing an existing form restores labels and preserves selected items",
   assert.equal(document.querySelector('[value="a1"]'), first);
   assert.equal(first.checked, true);
   assert.equal(document.querySelector(".plmge-feature-messages"), null);
-  document.querySelector('[data-setting="collapseCompleted"]').click();
   assert.equal(
     first.closest(".plmge-criterion").querySelector(".plmge-criterion-body")
       .hidden,

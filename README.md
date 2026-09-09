@@ -41,13 +41,13 @@ The **Manual grading options** menu is available in the Grading card header. Set
 
 ### Sticky grading panel
 
-On desktop widths, the Grading card sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
+Enabled by default. On desktop widths, the Grading card sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
 
 ### Collapse completed criteria
 
 Completed criteria collapse after one item is selected. Their headings remain available for changes; a criterion that you manually expand stays open while changing its selection.
 
-When enabled, digits `1` through `9`, followed by `0`, are assigned to visible grouped items in document order. Digit shortcuts already assigned to ungrouped items remain reserved.
+Enabled by default. Digits `1` through `9`, followed by `0`, are assigned to visible grouped items in document order. Digit shortcuts already assigned to ungrouped items remain reserved.
 
 ### Append grader name to feedback
 
@@ -66,9 +66,9 @@ into view on manual-grading pages. Disabled by default.
 
 ### Color rubric scores
 
-When enabled, score fractions in rubric items and selected criterion headings
+Enabled by default. Score fractions in rubric items and selected criterion headings
 are colored green for full credit, amber for partial credit, and red for no
-credit. Disabled by default.
+credit.
 
 ## Compatibility and failure behavior
 

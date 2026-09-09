@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Enabled all manual-grading options by default except **Open latest answer preview**.
+
 ## 3.2.0
 
 - Desktop grading supports a sticky, independently scrolling Grading card sized to the main content viewport. Rubric settings and student answers remain in the normal page flow.

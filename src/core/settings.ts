@@ -8,12 +8,12 @@ interface SettingDefinition {
 
 export const SETTING_DEFINITIONS = {
   splitScrolling: {
-    defaultValue: false,
+    defaultValue: true,
     label: "Sticky grading panel",
     help: "Keep the Grading card in view with its own scrolling on desktop.",
   },
   collapseCompleted: {
-    defaultValue: false,
+    defaultValue: true,
     label: "Collapse completed criteria",
     help: "Collapse selected criteria and reassign digits to visible grouped items.",
   },
@@ -28,7 +28,7 @@ export const SETTING_DEFINITIONS = {
     help: "Expand and scroll to the newest submitted answer's file preview.",
   },
   scoreColors: {
-    defaultValue: false,
+    defaultValue: true,
     label: "Color rubric scores",
     help: "Color score fractions by the amount of credit awarded.",
   },

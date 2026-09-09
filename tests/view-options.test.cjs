@@ -46,11 +46,11 @@ test("settings are persisted and malformed stored values fall back to safe defau
     const menu = window.document.querySelector(".plmge-options-menu");
     assert.equal(
       menu.querySelector('[data-setting="splitScrolling"]').checked,
-      stored !== "not-json",
+      true,
     );
     assert.equal(
       menu.querySelector('[data-setting="collapseCompleted"]').checked,
-      false,
+      true,
     );
     assert.equal(
       menu.querySelector('[data-setting="appendGraderName"]').checked,
@@ -62,12 +62,12 @@ test("settings are persisted and malformed stored values fall back to safe defau
     );
     assert.equal(
       menu.querySelector('[data-setting="scoreColors"]').checked,
-      false,
+      true,
     );
     menu.querySelector('[data-setting="collapseCompleted"]').click();
     assert.equal(
       JSON.parse(window.localStorage.getItem(key)).collapseCompleted,
-      true,
+      false,
     );
   }
 });
@@ -82,7 +82,6 @@ test("storage failures retain usable options and required validation", () => {
   loadBundle(window);
   fireDOMContentLoaded(window);
   const { document } = window;
-  document.querySelector('[data-setting="collapseCompleted"]').click();
   document.querySelector('[value="a1"]').click();
   assert.equal(document.querySelector(".plmge-criterion-body").hidden, true);
   const form = document.querySelector('form[name="manual-grading-form"]');

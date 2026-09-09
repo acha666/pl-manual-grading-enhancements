@@ -102,6 +102,7 @@ test("complete manual grading workflow on the official Docker deployment", async
   await test.step("Enforce exclusivity and block incomplete grades", async () => {
     // Grouped items are mutually exclusive, and an incomplete criterion
     // blocks the actual manual-grade form submission.
+    await grading.setOption("Collapse completed criteria", false);
     await grading.rubricItem("Excellent").check();
     await grading.rubricItem("Adequate").check();
     await expect(grading.rubricItem("Excellent")).not.toBeChecked();

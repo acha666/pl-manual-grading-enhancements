@@ -48,7 +48,6 @@ test("card sizing follows the main container and cleans up on disable and refres
   const card = document
     .querySelector(".js-main-grading-panel")
     .closest(".card");
-  option().click();
   assert.equal(card.style.getPropertyValue("--plmge-card-height"), "784px");
   assert.equal(observers.size, 1);
   assert.equal([...observers][0].target, container);

@@ -15,7 +15,6 @@ test("colors rubric score fractions by the amount of credit", () => {
 
   loadBundle(dom.window);
   fireDOMContentLoaded(dom.window);
-  document.querySelector('[data-setting="scoreColors"]').click();
 
   assert.deepEqual(
     [...document.querySelectorAll(".plmge-score")].map((score) => [
@@ -40,7 +39,6 @@ test("colors the selected criterion score in its heading", () => {
   loadBundle(dom.window);
   fireDOMContentLoaded(dom.window);
   document.querySelector('[value="a1"]').click();
-  document.querySelector('[data-setting="scoreColors"]').click();
 
   assert.equal(
     document.querySelector(

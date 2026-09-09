@@ -6,7 +6,6 @@ test("collapse mode hides completed criteria and remaps only grouped shortcuts",
   const dom = boot();
   const { document } = dom.window;
   const collapse = document.querySelector('[data-setting="collapseCompleted"]');
-  collapse.click();
 
   const first = document.querySelector('[value="a1"]');
   first.click();
@@ -28,7 +27,6 @@ test("collapse mode hides completed criteria and remaps only grouped shortcuts",
 test("collapse mode does not re-collapse a criterion after it is manually expanded", () => {
   const dom = boot();
   const { document } = dom.window;
-  document.querySelector('[data-setting="collapseCompleted"]').click();
 
   const first = document.querySelector('[value="a1"]');
   first.click();
@@ -50,7 +48,6 @@ test("collapse mode does not re-collapse a criterion after it is manually expand
 test("typing, modifiers, repeats, and open modals do not trigger rubric shortcuts", () => {
   const { window } = boot();
   const { document } = window;
-  document.querySelector('[data-setting="collapseCompleted"]').click();
   for (const [target, options] of [
     [document.querySelector("textarea"), {}],
     [document.body, { ctrlKey: true }],
@@ -87,11 +84,13 @@ test("generated badges are restored through option changes and panel refreshes",
     .closest("label")
     .querySelector("kbd");
 
+  document.querySelector('[data-setting="collapseCompleted"]').click();
+  document.querySelector('[data-setting="collapseCompleted"]').click();
   for (let refresh = 0; refresh < 3; refresh++) {
     const collapse = document.querySelector(
       '[data-setting="collapseCompleted"]',
     );
-    collapse.click();
+    if (!collapse.checked) collapse.click();
     assert.equal(label.querySelectorAll("kbd").length, 1);
     assert.equal(
       label.querySelector("kbd").textContent,
