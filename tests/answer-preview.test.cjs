@@ -153,3 +153,156 @@ test("fully expands asynchronously loaded code once and stops watching when disa
   await new Promise((resolve) => dom.window.setTimeout(resolve, 10));
   assert.equal(clicks, 1, "pending expansion is cancelled on disable");
 });
+
+for (const outcome of ["short code", "long code", "error", "unsupported"]) {
+  test(`waits for asynchronous ${outcome} and collapse completion before scrolling`, async () => {
+    const dom = createPage();
+    const { document } = dom.window;
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div id="question-upload"><div class="file-preview show"><pre>Question upload</pre></div></div>
+      <div data-testid="submission-block">
+        <h2>Submitted answer</h2>
+        <div class="js-submission-body show collapse" data-submission-id="20">
+          <div class="js-file-preview-item">
+            <button data-bs-toggle="collapse" aria-expanded="false">Show preview</button>
+            <div class="js-error-alert d-none"></div><div class="js-info-alert d-none"></div>
+            <div class="file-preview collapse">
+              <div class="file-preview-container"><pre class="d-none"><code></code></pre></div>
+              <button class="file-preview-expand d-none">Expand</button>
+            </div>
+          </div>
+        </div>
+      </div>`,
+    );
+    const item = document.querySelector(".js-file-preview-item");
+    const preview = item.querySelector(".file-preview");
+    const toggle = item.querySelector("button");
+    const container = item.querySelector(".file-preview-container");
+    const expand = item.querySelector(".file-preview-expand");
+    const scrolls = [];
+    dom.window.HTMLElement.prototype.scrollIntoView = function () {
+      scrolls.push(this);
+    };
+    toggle.addEventListener("click", () => {
+      toggle.setAttribute("aria-expanded", "true");
+      preview.className = "file-preview collapsing";
+    });
+    expand.addEventListener("click", () => {
+      container.style.maxHeight = "none";
+    });
+    dom.window.localStorage.setItem(
+      "pl.manualGradingEnhancements.settings.v1",
+      JSON.stringify({ latestAnswerPreview: true }),
+    );
+    loadBundle(dom.window);
+    fireDOMContentLoaded(dom.window);
+    const tick = () =>
+      new Promise((resolve) => dom.window.setTimeout(resolve, 25));
+    await tick();
+    assert.equal(
+      scrolls.length,
+      0,
+      "does not scroll into an empty, animating preview on initial load",
+    );
+    if (outcome.includes("code")) {
+      item.querySelector("pre").classList.remove("d-none");
+      if (outcome === "long code") expand.classList.remove("d-none");
+    } else {
+      item
+        .querySelector(
+          outcome === "error" ? ".js-error-alert" : ".js-info-alert",
+        )
+        .classList.remove("d-none");
+    }
+    await tick();
+    assert.equal(
+      scrolls.length,
+      0,
+      "content readiness does not bypass the collapse animation",
+    );
+    preview.className = "file-preview collapse show";
+    preview.dispatchEvent(
+      new dom.window.Event("shown.bs.collapse", { bubbles: true }),
+    );
+    await tick();
+    assert.deepEqual(
+      scrolls,
+      [item],
+      "scrolls only to the submitted answer, once ready",
+    );
+    if (outcome === "long code")
+      assert.equal(container.style.maxHeight, "none");
+    item.querySelector("code").textContent = "later update";
+    await tick();
+    assert.equal(
+      scrolls.length,
+      1,
+      "does not pull the reader back after initialization",
+    );
+  });
+}
+
+test("cancels pending scrolling when disabled", async () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div data-testid="submission-block"><h2>Submitted answer 1</h2><div class="js-submission-body"><div class="js-file-preview-item"><button data-bs-toggle="collapse" aria-expanded="true"></button><div class="file-preview show"><pre class="d-none"></pre></div></div></div></div>`,
+  );
+  let scrolls = 0;
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {
+    scrolls++;
+  };
+  loadBundle(dom.window);
+  fireDOMContentLoaded(dom.window);
+  const setting = document.querySelector(
+    '[data-setting="latestAnswerPreview"]',
+  );
+  setting.click();
+  setting.click();
+  document.querySelector("pre").classList.remove("d-none");
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 25));
+  assert.equal(scrolls, 0);
+});
+
+test("waits for a lazily rendered latest submission instead of opening an older preview", async () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div data-testid="submission-block" id="latest">
+      <h2>Submitted answer</h2>
+      <button data-bs-toggle="collapse" aria-controls="latest-body" aria-expanded="false"></button>
+      <div class="js-submission-body" data-submission-id="200" id="latest-body"></div>
+    </div>
+    <div data-testid="submission-block" id="older">
+      <h2>Submitted answer</h2>
+      <div class="js-submission-body" data-submission-id="100">
+        <div class="js-file-preview-item"><button data-bs-toggle="collapse"></button></div>
+      </div>
+    </div>`,
+  );
+  const scrolls = [];
+  dom.window.HTMLElement.prototype.scrollIntoView = function () {
+    scrolls.push(this);
+  };
+  let olderClicks = 0;
+  document.querySelector("#older button").addEventListener("click", () => {
+    olderClicks++;
+  });
+  loadBundle(dom.window);
+  fireDOMContentLoaded(dom.window);
+  document.querySelector('[data-setting="latestAnswerPreview"]').click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 15));
+  assert.equal(scrolls.length, 0);
+  document.querySelector("#latest-body").innerHTML =
+    `<div class="js-file-preview-item"><button data-bs-toggle="collapse" aria-expanded="true"></button><div class="file-preview show"><pre>loaded answer</pre></div></div>`;
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 25));
+  assert.deepEqual(scrolls, [
+    document.querySelector("#latest .js-file-preview-item"),
+  ]);
+  assert.equal(olderClicks, 0);
+});
