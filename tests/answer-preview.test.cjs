@@ -51,7 +51,7 @@ test("opens and scrolls to the newest submitted answer preview", async () => {
   loadBundle(dom.window);
   fireDOMContentLoaded(dom.window);
   document.querySelector('[data-setting="latestAnswerPreview"]').click();
-  await new Promise((resolve) => dom.window.setTimeout(resolve, 10));
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 50));
 
   assert.equal(previewClicks, 1);
   assert.equal(scrolls, 1);
