@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.1
 
 - Added **Highlight C code previews**, disabled by default, with bundled Prism C syntax highlighting, a dark palette, and line numbers in native submitted-file previews. Disabling the option restores plain text.
 

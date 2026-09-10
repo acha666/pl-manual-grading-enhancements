@@ -1,6 +1,6 @@
 {
   "name": "pl-manual-grading-enhancements",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "private": true,
   "description": "Modular TypeScript enhancements for PrairieLearn manual grading",
   "scripts": {
