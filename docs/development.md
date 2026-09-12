@@ -66,6 +66,9 @@ belong in `styles.css`.
 `start()` may return `false` when a feature does not apply. `stop()` must tolerate
 partial initialization and repeated calls. The runtime cleans up failed starts
 and stops active features in reverse order, continuing after cleanup failures.
+Use `runtime.run(feature, action)` for cross-feature calls to optional features.
+If an action throws, the runtime unregisters and cleans up that feature, reports
+the original error, and ignores later calls until the next panel initialization.
 Register required grading validation as critical; optional failures should leave
 unrelated features running. `core/failure-reporting.ts` handles visible errors.
 

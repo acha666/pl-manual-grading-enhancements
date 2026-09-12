@@ -30,14 +30,8 @@ export function startFeatures(contract: Contract, report: Report) {
   let codePreview: CodePreview | null = null;
 
   const appendAttribution = () => {
-    if (!settings.appendGraderName || !attribution) return;
-    try {
-      attribution.append();
-    } catch (error) {
-      attribution.stop();
-      attribution = null;
-      report("Grader attribution", error, false);
-    }
+    if (settings.appendGraderName)
+      runtime.run(attribution, (feature) => feature.append());
   };
 
   const rubric = runtime.mount(
@@ -47,8 +41,8 @@ export function startFeatures(contract: Contract, report: Report) {
         contract,
         settings,
         () => {
-          syncShortcuts();
-          scoreColors?.sync();
+          runtime.run(shortcuts, (feature) => feature.sync());
+          runtime.run(scoreColors, (feature) => feature.sync());
         },
         appendAttribution,
       ),
@@ -118,28 +112,21 @@ export function startFeatures(contract: Contract, report: Report) {
     () => new ScoreColors(() => settings.scoreColors),
   );
 
-  function syncShortcuts() {
-    if (!shortcuts) return;
-    try {
-      shortcuts.sync();
-    } catch (error) {
-      shortcuts.stop();
-      shortcuts = null;
-      report("Rubric shortcuts", error, false);
-    }
-  }
-
   function handleUngroupedSubmit(event: SubmitEvent) {
     if (isGradeSubmission(event)) appendAttribution();
   }
 
   function handleSettingChanged(name: SettingName) {
-    if (name === "splitScrolling") layout?.sync();
+    if (name === "splitScrolling")
+      runtime.run(layout, (feature) => feature.sync());
     if (name === "collapseCompleted")
       rubric?.setCollapseEnabled(settings.collapseCompleted);
-    if (name === "latestAnswerPreview") latestAnswerPreview?.sync();
-    if (name === "scoreColors") scoreColors?.sync();
-    if (name === "codePreview") codePreview?.sync();
+    if (name === "latestAnswerPreview")
+      runtime.run(latestAnswerPreview, (feature) => feature.sync());
+    if (name === "scoreColors")
+      runtime.run(scoreColors, (feature) => feature.sync());
+    if (name === "codePreview")
+      runtime.run(codePreview, (feature) => feature.sync());
   }
 
   return runtime;

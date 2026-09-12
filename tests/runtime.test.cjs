@@ -125,3 +125,77 @@ test("a failed rollback preserves the original initialization error", () => {
   assert.equal(stops, 1);
   assert.deepEqual(reports, [["critical", error, true]]);
 });
+
+test("failed actions stop once, preserve the action error, and isolate later calls", () => {
+  const reports = [];
+  const events = [];
+  const runtime = new FeatureRuntime((...args) => reports.push(args));
+  const error = new Error("sync failed");
+  const broken = runtime.mount("optional", () => ({
+    start() {},
+    stop() {
+      events.push("broken stopped");
+      runtime.run(broken, () => assert.fail("called during cleanup"));
+      throw new Error("cleanup failed");
+    },
+  }));
+  const healthy = runtime.mount("healthy", () => ({
+    start() {},
+    stop() {
+      events.push("healthy stopped");
+    },
+  }));
+
+  runtime.run(broken, () => {
+    throw error;
+  });
+  runtime.run(broken, () => assert.fail("retried a failed feature"));
+  runtime.run(healthy, (feature) => {
+    assert.equal(feature, healthy);
+    events.push("healthy action");
+  });
+  runtime.stop();
+  runtime.run(healthy, () => assert.fail("called after shutdown"));
+  runtime.run(null, () => assert.fail("called an unavailable feature"));
+
+  assert.deepEqual(reports, [["optional", error, false]]);
+  assert.deepEqual(events, [
+    "broken stopped",
+    "healthy action",
+    "healthy stopped",
+  ]);
+});
+
+test("action failures retain the feature's critical severity", () => {
+  const reports = [];
+  const runtime = new FeatureRuntime((...args) => reports.push(args));
+  const feature = runtime.mount(
+    "validation",
+    () => ({ start() {}, stop() {} }),
+    true,
+  );
+  const error = new Error("validation failed");
+  runtime.run(feature, () => {
+    throw error;
+  });
+  assert.deepEqual(reports, [["validation", error, true]]);
+});
+
+test("an inapplicable feature's failed cleanup is not retried", () => {
+  let stops = 0;
+  const runtime = new FeatureRuntime(() => assert.fail("unexpected failure"));
+  assert.equal(
+    runtime.mount("unused", () => ({
+      start() {
+        return false;
+      },
+      stop() {
+        stops++;
+        throw new Error("cleanup failed");
+      },
+    })),
+    null,
+  );
+  runtime.stop();
+  assert.equal(stops, 1);
+});
