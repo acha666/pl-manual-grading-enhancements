@@ -1,9 +1,12 @@
 # Deployment tests
 
-Prerequisites: a running Docker daemon, Node.js, and Chromium with its system
-libraries. The browser runs on the host; the real PrairieLearn application and
-its support services run inside the official container using its normal entrypoint.
-No upstream checkout, pnpm, host PostgreSQL, or host Redis is needed.
+For fast local checks, see the [development guide](development.md#verification).
+
+## Run the suite
+
+Use Node.js 20+, npm 9+, a running Docker daemon, and Chromium with its system
+libraries. The browser runs on the host; PrairieLearn and its services run in the
+official container.
 
 ```sh
 npm ci
@@ -11,68 +14,68 @@ npx playwright install chromium --with-deps
 npm run test:e2e
 ```
 
-The runner pulls the immutable image recorded in `tests/e2e/upstream-image.txt`,
-creates a disposable container, copies the minimal course and built element into
-`/course`, restores the frozen PostgreSQL state, and waits for the application health endpoint. It publishes port 3000
-on a random **localhost-only** port. Each run owns its database and course; no
-Docker socket or host course directory is mounted inside the application.
+The runner uses the image pinned in `tests/e2e/upstream-image.txt`, creates a
+disposable container, and copies the test course and current element build into
+`/course`. It restores the saved database before starting PrairieLearn and exposes
+port 3000 through a random localhost-only port. No host course directory or Docker
+socket is mounted in the application container.
 
-All E2E runs, including the weekly latest-upstream check, restore
-`tests/e2e/state/database.dump` **before the application starts**. This logical
-PostgreSQL backup contains the synced course, uploaded `fib.py`, saved submission,
-and four-item rubric. Tests begin with an ungraded submission ready for grading.
-The element's current build is copied fresh on every run.
+The suite covers staff-only activation, rubric grouping and required selections,
+panel refreshes, settings, attribution, and persisted grading. Layout checks cover
+sticky grading, viewport sizing, rubric settings, and narrow screens. Shared
+locators and menu actions live in `tests/e2e/manual-grading-page.ts`.
 
-The E2E suite covers this element: activation only on the staff grading page,
-grouping and required selections, panel replacement, settings, attribution, and
-persisted grading. Layout checks cover sticky grading, viewport sizing, expanded
-rubric settings, and narrow screens. It edits an existing rubric item to trigger panel replacement,
-but does not create courses, upload files, or answer questions. Those operations
-belong exclusively to the state-update procedure in `tests/state/refresh.setup.ts`,
-which is not discovered by the normal E2E suite.
+Both views use the development-mode Dev User; production authentication is outside
+the suite's scope. Failed writes are not automatically retried.
 
-The manifest records the snapshot's source image, course hash, dump checksum and
-IDs. Course or dump mismatches fail explicitly. A different target image is
-allowed: the runner restores the snapshot into an empty database and invokes the
-official startup script, which runs upstream database migrations before serving
-the application. `test-results/deployment/restored-state.json` records the source
-and target images. Restore/migration failures fail CI with deployment logs;
-tests never fall back to rebuilding the course or submitting another answer.
+## Saved grading state
 
-To update the saved state explicitly:
+`tests/e2e/state/database.dump` contains the synced course, uploaded `fib.py`, an
+ungraded submission, and a four-item rubric. Normal tests restore this state;
+course creation, uploads, and rubric setup belong to
+`tests/state/refresh.setup.ts`.
+
+The accompanying `manifest.json` records the source image, course hash, dump
+checksum, and IDs. Course or dump mismatches fail the run. When testing a different
+image, PrairieLearn's startup script migrates the restored database. Restore or
+migration failures stop the run and retain deployment logs.
+
+To regenerate the fixture:
 
 ```sh
 npm run fixtures:upstream
 ```
 
-This maintenance command starts an empty deployment, loads the course, submits the
-file, creates the rubric, and exports the ungraded database. It replaces
-`database.dump` and `manifest.json` only after preparation succeeds. Commit both
-files together, and run `npm run test:e2e` to validate the resulting snapshot.
-Use `PRAIRIELEARN_IMAGE` to prepare state with another upstream image when needed.
-Ordinary E2E runs never modify the committed snapshot.
+This command starts an empty deployment, prepares the course and submission, and
+replaces `database.dump` and `manifest.json` after preparation succeeds. Commit
+both files together and run `npm run test:e2e` to validate them. Set
+`PRAIRIELEARN_IMAGE` to prepare state with a different image. Normal E2E runs do not
+modify the committed snapshot.
 
-Development-mode Dev User is used for both views; production authentication is
-outside this suite's scope. No automatic retries repeat a failed write.
+## Upstream compatibility
 
-The runner collects the resolved image identity, container state, and server logs
-in `test-results/deployment/`, and removes the container and its volumes on success,
-failure, or handled interruption. Browser failure traces, screenshots and videos
-are under `test-results/browser/`; open the report with `npx playwright show-report`.
-A forced process kill cannot run cleanup; identify any leftover container by its
-`plmge-e2e-` name and remove it with `docker rm -fv <name>`.
-
-PRs, branch pushes, and releases run the pinned deployment test. The weekly/manual
-upstream compatibility workflow restores the same saved state into the mutable
-`latest` image and runs the same element tests.
-To reproduce the latest-upstream check locally:
+PRs, branch pushes, and releases test the pinned image. The weekly and manual
+compatibility workflow tests `latest` with the same saved state. To reproduce it:
 
 ```sh
 PRAIRIELEARN_IMAGE=prairielearn/prairielearn:latest npm run test:upstream:e2e
 ```
 
-Both E2E commands default to the image in `tests/e2e/upstream-image.txt`.
-`PRAIRIELEARN_IMAGE` overrides that image. To upgrade the pin, validate the target
-image against the saved state and copy its tested repository digest from
+Both E2E commands default to `tests/e2e/upstream-image.txt`;
+`PRAIRIELEARN_IMAGE` overrides the pin. To upgrade it, test the target image against
+the saved state, then copy the tested repository digest from
 `test-results/deployment/image.json` into `tests/e2e/upstream-image.txt`.
-Upstream migrations allow the saved state to be reused across image upgrades.
+
+## Diagnostics and cleanup
+
+| Location                                      | Contents                                         |
+| --------------------------------------------- | ------------------------------------------------ |
+| `test-results/deployment/`                    | Image identity, container state, and server logs |
+| `test-results/deployment/restored-state.json` | Snapshot source and target images                |
+| `test-results/browser/`                       | Browser failure traces, screenshots, and videos  |
+
+Open the browser report with `npx playwright show-report`.
+
+The runner removes its container and volumes on success, failure, or handled
+interruption. After a forced process kill, remove any leftover `plmge-e2e-`
+container with `docker rm -fv <name>`.

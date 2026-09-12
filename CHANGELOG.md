@@ -1,12 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Simplified the README around installation and grading options, and moved packaging and release instructions into the development guide.
+- Reorganized development and deployment testing guidance, reduced repeated detail, and clarified English wording across the documentation.
+
 ## 3.2.1
 
-- Added **Highlight C code previews**, disabled by default, with bundled Prism C syntax highlighting, a dark palette, and line numbers in native submitted-file previews. Disabling the option restores plain text.
-
-- Fully expand the latest answer’s code preview after its file finishes loading.
+- Added **Highlight C code previews**, disabled by default, with bundled C syntax highlighting and line numbers in submitted-file previews.
+- Fully expand the latest answer's code preview after its file finishes loading.
 - Keep Grading and Staff information together in the sticky, scrolling column so the cards do not overlap.
-
 - Enabled all manual-grading options by default except **Open latest answer preview** and **Highlight C code previews**.
 
 ## 3.2.0

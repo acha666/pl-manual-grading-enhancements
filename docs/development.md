@@ -1,106 +1,106 @@
 # Development
 
-Use Node.js 20+ and npm 9+; Python 3 is needed for controller tests.
+For installation and grading options, see the [README](../README.md).
+
+## Local workflow
+
+Use Node.js 20+, npm 9+, and Python 3.
 
 ```sh
 npm ci
 npm run dev       # Watch and rebuild JS/CSS with inline source maps
-npm run check     # Strict TypeScript checking
-npm run format    # Apply the shared formatting rules
-npm run verify    # Formatting, type checking, bundle tests, Python tests
-npm run package   # Verify and prepare dist/ for installation
+npm run check     # Check production and Playwright TypeScript
+npm run format    # Apply formatting
+npm run verify    # Check formatting, types, bundle behavior, and controller
+npm run package   # Verify and stage an installable element in dist/
 ```
 
-`npm run build` generates the production JS/CSS in
-`elements/pl-manual-grading-enhancements/dist/`. Copy the element directory after
-building to test it in a PrairieLearn course. `npm run dev` rebuilds those files
-as you edit; reload the grading page to use the changes. There is no standalone
-application server because the element runs inside PrairieLearn.
+`npm run build` generates production assets in
+`elements/pl-manual-grading-enhancements/dist/`. Copy the built element directory
+into a PrairieLearn course and reload the grading page after changes. The element
+runs inside PrairieLearn; there is no standalone application server.
 
-The toolchain is TypeScript, esbuild, Prettier, and the existing Node test runner
-with jsdom. No frontend framework is shipped. Prism core, C-like, C, and the official Line Numbers plugin are bundled for the optional C preview feature. Source files
-use standard ES module imports; esbuild emits a single classic-script bundle for
-PrairieLearn's element loader. Generated assets are not committed.
+TypeScript and esbuild produce a single classic-script bundle. Tests use the Node
+test runner with jsdom. Generated assets are not committed.
 
-```text
-src/
-  main.ts          Activation and PrairieLearn panel refresh handling
-  core/            DOM contracts, settings, shared types, feature lifecycle
-  features/        Rubric grouping, shortcuts, attribution, options, panel layout
-    index.ts       Explicit feature composition and dependency wiring
-  styles.css       Element-scoped styles
-scripts/
-  build.mjs        Production/watch builds and release staging
-elements/pl-manual-grading-enhancements/
-  controller.py    PrairieLearn activation marker
-  info.json        Generated JS/CSS dependency paths
-tests/            Bundle behavior, lifecycle, controller, upstream E2E
-```
+## Source layout
 
-## Module boundaries
-
-`main.ts` owns activation and panel refreshes; `core/failure-reporting.ts` owns
-user-visible initialization errors. `features/index.ts` is the composition root:
-it creates features and connects their callbacks and settings.
+| Path                                       | Responsibility                                               |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `src/main.ts`                              | Activation and grading-panel refreshes                       |
+| `src/core/`                                | DOM contracts, settings, shared types, and feature lifecycle |
+| `src/features/`                            | Grading enhancements                                         |
+| `src/features/index.ts`                    | Feature composition and dependency wiring                    |
+| `src/styles.css`                           | Element-scoped styles                                        |
+| `scripts/build.mjs`                        | Builds and release staging                                   |
+| `elements/pl-manual-grading-enhancements/` | Python controller, asset metadata, and third-party notices   |
+| `tests/`                                   | Bundle, lifecycle, controller, and deployment tests          |
 
 `RubricGroups` owns selection rules, submission validation, and collapse policy.
-`CriterionView` owns each group's markup, summaries, accessibility attributes,
-and restoration of the original rubric nodes. Keep presentation changes in the
-view and grading policy in the coordinator.
+`CriterionView` owns group markup, summaries, accessibility, and restoration of
+original rubric nodes. Keep grading policy in the coordinator and presentation
+in the view.
 
-`ShortcutManager` receives a callback for visible items instead of depending on
-the grouping implementation. It owns generated badges; the shared `RubricItem`
-contract describes upstream markup, not feature-created UI state. Features share
-`core/submission.ts` to identify grading actions consistently.
+`ShortcutManager` receives visible items through a callback. It owns generated
+badges; the shared `RubricItem` contract describes upstream markup. Features use
+`core/submission.ts` to identify grading actions.
 
-`CodePreview` observes submission blocks only while enabled and decorates native
-`.c` previews after their text loads. It preserves native controls and restores
-plain text on cleanup. `core/prism.ts` loads the bundled components on first use,
-disables automatic highlighting, and temporarily exposes its Prism instance only
-during synchronous component loading/highlighting so an existing host Prism is
-preserved. The line-number plugin is initialized once per page. Its scoped CSS
-in `styles.css` retains native font metrics and avoids soft wrapping.
+`CodePreview` decorates native `.c` previews while enabled and restores plain text
+on cleanup. `core/prism.ts` loads bundled Prism core, C-like, C, and Line Numbers
+components on first use while preserving any host Prism instance. Preview styles
+belong in `styles.css`.
 
 ## Adding a feature
 
-Implement the `Lifecycle` interface (`start()` / `stop()`) in `src/features/` and
-register it with `runtime.mount()` in `src/features/index.ts`. Pass dependencies
-explicitly through constructor parameters. `start()` may return `false` when the
-feature does not apply. `stop()` must tolerate partial initialization and repeated
-calls. The runtime cleans up failed starts and stops active features in reverse
-order; a cleanup failure does not prevent other modules from stopping.
+1. Implement `Lifecycle` (`start()` / `stop()`) in `src/features/` and register it
+   with `runtime.mount()` in `src/features/index.ts`. Pass dependencies through
+   constructor parameters.
+2. Keep PrairieLearn selectors in `core/config.ts` and validate markup in
+   `core/contract.ts` or `core/feature-contracts.ts`.
+3. Add persistent options to `SETTING_DEFINITIONS` in `core/settings.ts` and wire
+   their behavior in `features/index.ts`. Types, defaults, validation, and menu
+   controls derive from the definition. Preserve the storage key so users keep
+   their preferences.
+4. Add coverage for the behavior and cleanup, then run `npm run verify`.
 
-Keep PrairieLearn selectors in `core/config.ts` and validate markup in
-`core/contract.ts` or `core/feature-contracts.ts`. Add persistent options to `SETTING_DEFINITIONS` in `core/settings.ts`; types,
-defaults, storage validation, and menu controls derive from that definition.
-Wire option behavior in `features/index.ts`. Preserve the existing storage key so users keep their preferences.
-Required grading validation is registered as critical; optional feature failures
-are reported without stopping unrelated enhancements. Browser tests exercise the
-same minified bundle that is shipped to courses.
+`start()` may return `false` when a feature does not apply. `stop()` must tolerate
+partial initialization and repeated calls. The runtime cleans up failed starts
+and stops active features in reverse order, continuing after cleanup failures.
+Register required grading validation as critical; optional failures should leave
+unrelated features running. `core/failure-reporting.ts` handles visible errors.
 
-## Testing
+## Verification
 
-| Layer                                  | Command                                 | Coverage                                                                                                                |
-| -------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Types and formatting                   | `npm run check`, `npm run format:check` | Production and Playwright TypeScript, shared formatting                                                                 |
-| DOM integration and lifecycle          | `npm test`                              | Minified shipping bundle, grouping, validation, shortcuts, settings, attribution, panel replacement and cleanup         |
-| Python controller and element contract | `npm run test:controller`               | Activation rules and declared build assets (run `npm run build` first)                                                  |
-| Real deployment E2E                    | `npm run test:e2e`                      | Official PrairieLearn container, restored submission/rubric, real Python rendering, panel refresh and persisted grading |
+| Command                   | Coverage                                                 |
+| ------------------------- | -------------------------------------------------------- |
+| `npm run format:check`    | Repository formatting                                    |
+| `npm run check`           | Production and Playwright types                          |
+| `npm test`                | Builds and tests the minified shipping bundle with jsdom |
+| `npm run test:controller` | Python activation and asset contracts; build first       |
+| `npm run test:e2e`        | Real PrairieLearn deployment in Docker                   |
 
-The jsdom fixtures model the expected upstream DOM; they do not replace browser
-compatibility testing. Windows are cleaned up after every test, including failed
-assertions. `npm run verify` runs the fast checks without requiring Docker.
+`npm run verify` runs the fast checks without Docker. Bundle tests are organized
+by feature; `browser-integration.test.cjs` covers activation, contract failures,
+and panel refreshes, and `runtime.test.cjs` covers startup and cleanup.
+`tests/fixtures.cjs` provides shared markup, bundle loading, form submission,
+and window cleanup.
 
-See [deployment tests](testing.md) for Docker setup, fixture maintenance, and upstream compatibility checks.
+The jsdom fixtures model upstream markup. Use the [deployment tests](testing.md)
+to check behavior in a real browser and maintain the saved grading fixture.
 
-Browser tests are split by feature (`rubric-groups`, `shortcuts`, `attribution`,
-`view-options`, `panel-layout`, `answer-preview`, `code-preview`, and `score-colors`).
-`browser-integration.test.cjs` covers activation, contract failures, and panel
-refreshes; `runtime.test.cjs` covers feature startup and cleanup.
-`tests/fixtures.cjs` owns the shared page markup, production bundle loading,
-form submission helper, and window cleanup.
+## Packaging and releases
 
-The deployment workflow uses `tests/e2e/manual-grading-page.ts` for shared locators
-and menu interactions. Its assertions cover layout persistence through panel
-replacement, option changes, desktop resizing, and the narrow-screen layout,
-alongside rubric validation and saved grading results.
+For local installation, run `npm run package` and copy
+`dist/elements/pl-manual-grading-enhancements` into the course repository.
+The package also stages the README and guides. Courses do not need Node.js or
+TypeScript sources.
+
+`package.json` is the source of the runtime version. To publish a release:
+
+1. Update the changelog and commit the changes.
+2. Run `npm version patch` (or `minor` / `major`) to create the version commit and tag.
+3. Push the commit and tag, for example `git push origin main --follow-tags`.
+
+The release workflow checks that `vX.Y.Z` matches `package.json`, runs local
+verification and pinned Docker E2E, and publishes
+`pl-manual-grading-enhancements.zip` containing the element, README, and guides.

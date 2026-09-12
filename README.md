@@ -1,6 +1,6 @@
 # PrairieLearn Manual Grading Enhancements
 
-This course-specific PrairieLearn element adds small client-side enhancements to the manual-grading page. Its core feature groups rubric items into required criteria; optional settings provide panel layout, shortcut, and grader-attribution improvements.
+This course-specific PrairieLearn element adds small client-side enhancements to the manual-grading page. It groups rubric items into required criteria and provides options for panel layout, shortcuts, feedback attribution, and answer previews.
 
 ## Installation
 
@@ -41,28 +41,28 @@ The **Manual grading options** menu is available in the Grading card header. Set
 
 ### Sticky grading panel
 
-Enabled by default. On desktop widths, the right column containing Grading and Staff information sticks near the top of the main content area and scrolls internally. Its maximum height follows the main content viewport. Top-level information, rubric settings, and student answers scroll with the page. Narrow screens retain the normal document layout.
+Enabled by default. On desktop widths, the right column containing Grading and Staff information sticks near the top of the main content area and scrolls internally. Student answers scroll with the page. Narrow screens retain the normal document layout.
 
 ### Collapse completed criteria
 
-Completed criteria collapse after one item is selected. Their headings remain available for changes; a criterion that you manually expand stays open while changing its selection.
+Enabled by default. Completed criteria collapse after one item is selected. Their headings remain available for changes; a criterion that you manually expand stays open while changing its selection.
 
-Enabled by default. Digits `1` through `9`, followed by `0`, are assigned to visible grouped items in document order. Digit shortcuts already assigned to ungrouped items remain reserved.
+Shortcut digits `1` through `9`, followed by `0`, are assigned to visible grouped items in document order.
 
 ### Append grader name to feedback
 
-Enabled by default. Before a valid grade submission, the element appends this line to the feedback field:
+Enabled by default. Before a valid grade submission, the element adds or replaces a final attribution line in the feedback field:
 
 ```text
 Graded by: Grader Name
 ```
 
-The name is read from PrairieLearn's authenticated staff menu. A terminal `Graded by:` line is replaced rather than duplicated. Skip, navigation, and reassignment actions do not add attribution.
+The name is read from PrairieLearn's authenticated staff menu. Skip, navigation, and reassignment actions do not add attribution.
 
 ### Open latest answer preview
 
 When enabled, opens the newest submitted answer's file preview and scrolls it
-into view on manual-grading pages. Disabled by default.
+into view on manual-grading pages.
 
 ### Color rubric scores
 
@@ -72,55 +72,29 @@ credit.
 
 ### Highlight C code previews
 
-Disabled by default. Enable this option to add C syntax colors and line numbers
-to submitted `.c` files in **Show preview**. The preview uses a dark background,
-readable comment colors, and horizontal scrolling for long lines. Line numbers
-start at 1 and are excluded from the code text.
+Enable this option to add C syntax colors and line numbers
+to submitted `.c` files in **Show preview**. Other file types are unchanged.
 
 Works with both manually opened previews and **Open latest answer preview**.
-Download and Expand/Collapse continue to use PrairieLearn's controls. Turning
-the option off restores plain text. Other file types are unchanged.
 
-Prism core, C-like, C, and the official Line Numbers plugin are bundled with the
-element; no CDN or additional file requests are used. The included
-`THIRD_PARTY_NOTICES.txt` contains the Prism license.
+## Compatibility
 
-## Compatibility and failure behavior
+The element targets PrairieLearn's manual-grading markup and Bootstrap dropdowns.
+It reinitializes when PrairieLearn refreshes the grading panel.
 
-The integration targets PrairieLearn's current manual-grading markup and Bootstrap dropdown support. It validates the activation marker, the main grading panel, the grading form, rubric inputs, and required controls before changing the page. It also reinitializes after PrairieLearn refreshes the grading panel in place, such as after rubric or AI-grading updates.
-
-The grading form is resolved inside the main grading panel, so other manual-grading forms in conflict modals are ignored. If the core contract is invalid, available grade-submission buttons are disabled and a visible error is shown. Read-only pages without grade actions remain usable. Optional feature failures disable only the affected feature and show a warning; details are also written to the browser console.
+If required grading controls are missing or invalid, grade submission is disabled
+and an error is shown. Read-only pages remain usable. Optional feature failures
+show a warning and disable only the affected feature.
 
 The element makes no network requests and does not store sensitive information.
+Prism is bundled for C highlighting; its license is included in
+`elements/pl-manual-grading-enhancements/THIRD_PARTY_NOTICES.txt`.
 
-## Development
+## Development and testing
 
-Use Node.js 20+, npm 9+, and Python 3.
-
-```sh
-npm ci
-npm run verify    # Formatting, types, bundle behavior, and controller tests
-npm run dev       # Watch and rebuild the element assets
-npm run package   # Verify and stage an installable element in dist/
-```
-
-See the [development guide](docs/development.md) for module boundaries and feature
-extension, and [deployment tests](docs/testing.md) for Docker testing and fixture
-maintenance.
-
-## Release
-
-`package.json` is the single source of the runtime version. To release:
-
-1. Update the version with `npm version patch` (or `minor` / `major`) after committing changes.
-2. Push the commit and its version tag, for example `git push origin main --follow-tags`.
-3. The tag workflow verifies that `vX.Y.Z` matches `package.json`, runs all local
-   checks and the pinned Docker E2E, then publishes a GitHub release containing the installable ZIP.
-
-For local installation without publishing, run `npm run package` and copy
-`dist/elements/pl-manual-grading-enhancements` into the course repository. The
-course needs only the packaged controller, metadata, JavaScript, and CSS; it does
-not need Node.js or the TypeScript sources.
+See the [development guide](docs/development.md) for setup, module boundaries,
+packaging, and releases, and the [deployment testing guide](docs/testing.md) for
+Docker tests and fixture maintenance.
 
 ## Removal
 
