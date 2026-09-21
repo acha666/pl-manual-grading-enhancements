@@ -17,6 +17,8 @@ import { LatestAnswerPreview } from "./latest-answer-preview.js";
 import { ScoreColors } from "./score-colors.js";
 import { CodePreview } from "./code-preview.js";
 
+import { GradingAvailability } from "./grading-availability.js";
+
 type Report = (name: string, error: unknown, critical: boolean) => void;
 
 /** Composes independent features and owns only their cross-feature wiring. */
@@ -33,6 +35,12 @@ export function startFeatures(contract: Contract, report: Report) {
     if (settings.appendGraderName)
       runtime.run(attribution, (feature) => feature.append());
   };
+
+  runtime.mount(
+    "Grading availability",
+    () => new GradingAvailability(contract),
+    true,
+  );
 
   const rubric = runtime.mount(
     "Grouped rubric",

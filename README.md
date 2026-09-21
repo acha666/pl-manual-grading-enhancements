@@ -35,6 +35,17 @@ Grouped criteria have these rules:
 - Rubric item IDs and PrairieLearn's rubric data model are unchanged.
 - Validation is client-side workflow protection; it is not server-side validation.
 
+## Grading availability
+
+Grade submission is disabled while the assessment instance is open or less than
+one hour has passed since the submission being graded. On load, a warning explains
+why and focuses PrairieLearn's **Next** button so the grader can open another
+submission. Next keeps PrairieLearn's queue filters and does not save a grade.
+
+The time restriction clears after an hour; refresh after an assessment closes.
+If the submission time cannot be read, saving stays disabled with an explanation.
+This uses the page's loaded state and the browser clock, not live server validation.
+
 ## Options
 
 The **Manual grading options** menu is available in the Grading card header. Settings are stored in local storage for the current browser profile.

@@ -76,6 +76,27 @@ const { chromium } = require("@playwright/test");
       });
       await page.goto(entries[0].request.url);
       await page.waitForFunction(() => window.previewScrolls.length > 0);
+      if (!process.env.PLMGE_HAR_ORIGINAL) {
+        const open = await page
+          .locator('#content > .alert[role="alert"]')
+          .filter({ hasText: "This assessment instance is still open." })
+          .count();
+        if (open) {
+          assert.ok(
+            await page.locator(".plmge-grading-availability").isVisible(),
+          );
+          for (const button of await page
+            .locator('button[name="__action"][value^="add_manual_grade"]')
+            .all()) {
+            assert.ok(await button.isDisabled());
+          }
+          assert.ok(
+            await page
+              .locator('button[value="next_instance_question"]')
+              .isEnabled(),
+          );
+        }
+      }
       const result = await page.evaluate(() => {
         const item = document.querySelector(
           "[data-plmge-latest-preview-initialized] .js-file-preview-item",

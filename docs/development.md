@@ -45,6 +45,14 @@ in the view.
 badges; the shared `RubricItem` contract describes upstream markup. Features use
 `core/submission.ts` to identify grading actions.
 
+`GradingAvailability` runs before rubric validation and attribution. It reuses PL's
+open-instance alert, the current `submission_id` and its Submission info timestamp,
+and the native `next_instance_question` action. `modified_at` is an instance-question
+concurrency token, not a submission timestamp. PL currently renders submission times
+as `YYYY-MM-DD HH:mm:ss (zone)`; UTC, GMT offsets, and North American E/C/M/P standard
+and daylight abbreviations are supported. Unrecognized or missing times block saving.
+The guard is reapplied after panel replacement and cleaned up through the runtime.
+
 `CodePreview` decorates native `.c` previews while enabled and restores plain text
 on cleanup. `core/prism.ts` loads bundled Prism core, C-like, C, and Line Numbers
 components on first use while preserving any host Prism instance. Preview styles

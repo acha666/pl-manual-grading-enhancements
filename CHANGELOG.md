@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 3.3.0
 
+- Disable grade submission for open assessment instances and submissions less than one hour old; guide graders to PrairieLearn’s native Next button on load, and block implicit and conflict-form saves too.
 - Centralized cross-feature failure handling and cleanup so failed optional actions do not interrupt other grading features or trigger repeated cleanup.
 - Simplified the README around installation and grading options, and moved packaging and release instructions into the development guide.
 - Reorganized development and deployment testing guidance, reduced repeated detail, and clarified English wording across the documentation.

@@ -13,6 +13,9 @@ export const SELECTORS = Object.freeze({
   gradeAction:
     'button[type="submit"][name="__action"][value^="add_manual_grade"]',
   graderMenu: '#username-nav[data-view-type="instructor"] #navbarDropdown',
+  assessmentAlert: '#content > .alert[role="alert"]',
+  nextAction:
+    'button[type="submit"][name="__action"][value="next_instance_question"]',
   submissionBlock: '[data-testid="submission-block"]',
   submissionBody: ".js-submission-body",
   filePreviewItem: ".js-file-preview-item",

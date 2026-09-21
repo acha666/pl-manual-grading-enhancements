@@ -47,7 +47,7 @@ test("invalid and skipped grades leave feedback untouched", () => {
   );
   assert.equal(feedback.value, "Draft feedback");
   assert.equal(
-    submit(form, form.querySelector('[value="skip_manual_grade"]')),
+    submit(form, form.querySelector('[value="next_instance_question"]')),
     true,
   );
   assert.equal(feedback.value, "Draft feedback");

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
 import { manualGradingPage } from "./manual-grading-page.js";
 import { readSubmissionState } from "./submission-state.js";
@@ -23,6 +24,63 @@ test("complete manual grading workflow on the official Docker deployment", async
   const manualGradingIQUrl =
     `${courseInstanceURL}/instructor/assessment/${assessmentId}` +
     `/manual_grading/instance_question/${instanceQuestionId}`;
+
+  await test.step("Block open and recent submissions and retain native Next navigation", async () => {
+    const container = process.env.PLMGE_CONTAINER;
+    if (!container) throw new Error("Missing disposable deployment container");
+    const sql = (query: string) =>
+      execFileSync("docker", [
+        "exec",
+        container,
+        "psql",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        query,
+      ]);
+    // Change only the disposable restored fixture, never the committed dump.
+    sql(
+      "UPDATE assessment_instances SET open = true; UPDATE submissions SET date = now() - interval '2 hours';",
+    );
+    await page.goto(manualGradingIQUrl);
+    const notice = page.locator(".plmge-grading-availability");
+    const next = grading.form.locator('[value="next_instance_question"]');
+    await expect(notice).toContainText("still open");
+    await expect(grading.gradeButton).toBeDisabled();
+    await expect(next).toBeFocused();
+    const navigation = page.waitForRequest(
+      (request) =>
+        request.method() === "POST" &&
+        request.url().includes("/manual_grading/"),
+    );
+    await next.click();
+    expect(
+      new URLSearchParams((await navigation).postData() ?? "").get("__action"),
+    ).toBe("next_instance_question");
+    await page.waitForLoadState("networkidle");
+
+    sql(
+      "UPDATE assessment_instances SET open = false; UPDATE submissions SET date = now() - interval '30 minutes';",
+    );
+    await page.goto(manualGradingIQUrl);
+    await expect(notice).toContainText("one hour");
+    await expect(grading.gradeButton).toBeDisabled();
+    expect(
+      await grading.form.evaluate((form) =>
+        form.dispatchEvent(
+          new SubmitEvent("submit", { bubbles: true, cancelable: true }),
+        ),
+      ),
+    ).toBe(false);
+    await expect(grading.feedback).toHaveValue("");
+
+    sql("UPDATE submissions SET date = now() - interval '2 hours';");
+    await page.goto(manualGradingIQUrl);
+    await expect(notice).toHaveCount(0);
+    await expect(grading.gradeButton).toBeEnabled();
+  });
 
   const { criteria } = grading;
   await test.step("Enhance the saved rubric and reinitialize after panel replacement", async () => {

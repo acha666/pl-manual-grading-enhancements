@@ -21,7 +21,10 @@ port 3000 through a random localhost-only port. No host course directory or Dock
 socket is mounted in the application container.
 
 The suite covers staff-only activation, rubric grouping and required selections,
-panel refreshes, settings, attribution, and persisted grading. Layout checks cover
+panel refreshes, settings, attribution, and persisted grading. It also changes the
+disposable database to exercise open-instance and recent-submission guards, native
+Next navigation, and grading after the waiting period. The committed snapshot stays
+unchanged. Layout checks cover
 sticky grading, viewport sizing, rubric settings, and narrow screens. Shared
 locators and menu actions live in `tests/e2e/manual-grading-page.ts`.
 

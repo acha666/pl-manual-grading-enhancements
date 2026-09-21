@@ -55,7 +55,7 @@ test("only grading actions are intercepted; skip actions remain available", () =
   const dom = boot();
   const { document } = dom.window;
   const form = document.querySelector('form[name="manual-grading-form"]');
-  const skipButton = form.querySelector('[value="skip_manual_grade"]');
+  const skipButton = form.querySelector('[value="next_instance_question"]');
 
   assert.equal(submit(form, skipButton), true);
   assert.equal(document.querySelector(".plmge-error").hidden, true);

@@ -108,10 +108,11 @@ function pageHtml({
 
   const gradingPanel = `<div class="js-main-grading-panel">
     <form name="manual-grading-form" data-rubric-active="${activeRubric}">
+      <input type="hidden" name="submission_id" value="42" />
       ${rows}
       ${includeAttribution ? '<textarea name="submission_note" class="js-submission-feedback"></textarea>' : ""}
       <button type="submit" name="__action" value="add_manual_grade">Submit</button>
-      ${includeView ? '<button type="submit" name="__action" value="skip_manual_grade">Skip</button>' : ""}
+      ${includeView ? '<button type="submit" name="__action" value="next_instance_question">Skip</button>' : ""}
     </form>
   </div>`;
   const view = includeView
@@ -140,7 +141,8 @@ function pageHtml({
         ${extraMarker ? "<span data-pl-manual-grading-enhancements hidden></span>" : ""}
         ${aiGrading ? "" : "<span data-pl-manual-grading-enhancements hidden></span>"}
         <nav id="username-nav" data-view-type="instructor"><button id="navbarDropdown">Ada Lovelace <span class="badge">Instructor</span></button></nav>
-        <div class="app-main-container">${view}</div>
+        <div id="content" class="app-main-container">${view}</div>
+        <div id="submissionInfoModal-42"><table><tr><th>Submission time</th><td>2020-01-01 00:00:00 (UTC)</td></tr></table></div>
         ${conflict}
       </body>
     </html>`;
