@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.1
+
+- Stabilized the Docker rubric-refresh test by waiting for Bootstrap expansion to finish and verifying the native save response before checking panel replacement. Added coverage with a slower expansion animation.
+
 ## 3.3.0
 
 - Disable grade submission for open assessment instances and submissions less than one hour old; guide graders to PrairieLearn’s native Next button on load, and block implicit and conflict-form saves too.

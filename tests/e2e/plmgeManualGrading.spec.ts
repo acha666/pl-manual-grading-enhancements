@@ -109,8 +109,18 @@ test("complete manual grading workflow on the official Docker deployment", async
     const cardMaxHeight = await grading.gradingColumn.evaluate(
       (card) => getComputedStyle(card).maxHeight,
     );
+    // Exercise the expanding state even on fast local runners.
+    const transitionStyle = await page.addStyleTag({
+      content:
+        "#rubric-setting.collapsing { transition-duration: 1s !important; }",
+    });
     await page.locator('[aria-label="Toggle rubric settings"]').click();
-    await expect(page.locator("#rubric-setting")).toBeVisible();
+    // Visibility is true during Bootstrap's expansion animation, while Save
+    // can still move between pointer down/up. Wait for the completed state.
+    await expect(page.locator("#rubric-setting")).toHaveClass(/\bshow\b/);
+    await expect(page.locator("#rubric-setting")).not.toHaveClass(
+      /\bcollapsing\b/,
+    );
     await expect(grading.gradingColumn).toHaveCSS("max-height", cardMaxHeight);
     await expect(grading.gradingColumn).toHaveCSS("position", "sticky");
     await expect(page.locator(".col-lg-8.col-12")).not.toHaveCSS(
@@ -123,19 +133,33 @@ test("complete manual grading workflow on the official Docker deployment", async
       .first()
       .fill("5");
     const previousForm = await grading.form.elementHandle();
+    const saved = page.waitForResponse((response) => {
+      // PL redirects the save POST to grading_rubric_panels; validate the
+      // final response consumed by the native component, not the 302.
+      const request = response.request().redirectedFrom() ?? response.request();
+      return (
+        (response.status() < 300 || response.status() >= 400) &&
+        request.method() === "POST" &&
+        request.url().endsWith(manualGradingIQUrl) &&
+        request.postDataJSON()?.__action === "modify_rubric_settings"
+      );
+    });
     await page
       .locator("#rubric-setting")
       .getByRole("button", { name: "Save" })
       .click();
-    await expect(grading.items).toHaveCount(4, {
-      timeout: 10000,
-    });
+    expect((await saved).ok()).toBe(true);
 
     // Verify a real replacement occurred, then check reactivation without a reload.
     await expect
-      .poll(() => previousForm!.evaluate((form) => form.isConnected))
+      .poll(() => previousForm!.evaluate((form) => form.isConnected), {
+        timeout: 10000,
+      })
       .toBe(false);
     await previousForm!.dispose();
+    await transitionStyle.evaluate((style) =>
+      style.parentNode?.removeChild(style),
+    );
     await expect(criteria).toHaveCount(2);
     await expect(grading.errors).toHaveCount(0);
     await expect(grading.menu).toHaveCount(1);
