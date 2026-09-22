@@ -6,6 +6,10 @@ import { isGradeSubmission } from "../core/submission.js";
 export class RubricGroups implements Lifecycle {
   private criteria: CriterionView[] = [];
   private internalChange = false;
+  private scoreObserver = new MutationObserver(() => {
+    for (const criterion of this.criteria) criterion.refresh();
+    this.onStateChanged();
+  });
   private manuallyExpanded = new Set<CriterionView>();
   private errorBox: HTMLDivElement | null = null;
   private listeners: (() => void)[] = [];
@@ -24,6 +28,12 @@ export class RubricGroups implements Lifecycle {
 
     this.buildCriteria();
     this.bindEvents();
+    for (const item of this.contract.groupedItems)
+      this.scoreObserver.observe(item.score, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
     this.setCollapseEnabled(this.settings.collapseCompleted, { initial: true });
     return true;
   }
@@ -82,6 +92,7 @@ export class RubricGroups implements Lifecycle {
   }
 
   stop() {
+    this.scoreObserver.disconnect();
     for (const remove of this.listeners) remove();
     this.listeners = [];
     for (const criterion of this.criteria) criterion.stop();
@@ -99,8 +110,8 @@ export class RubricGroups implements Lifecycle {
       try {
         for (const item of criterion.items) {
           if (item === changedItem || !item.input.checked) continue;
-          item.input.checked = false;
-          item.input.dispatchEvent(new Event("change", { bubbles: true }));
+          // A click updates both the native input and React's controlled state.
+          item.input.click();
         }
       } finally {
         this.internalChange = false;
@@ -179,7 +190,7 @@ export class RubricGroups implements Lifecycle {
 
   visibleItems() {
     return this.criteria.flatMap((criterion) =>
-      criterion.body.hidden ? [] : criterion.items,
+      criterion.expanded ? criterion.items : [],
     );
   }
 }

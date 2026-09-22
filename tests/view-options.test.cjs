@@ -83,7 +83,7 @@ test("storage failures retain usable options and required validation", () => {
   fireDOMContentLoaded(window);
   const { document } = window;
   document.querySelector('[value="a1"]').click();
-  assert.equal(document.querySelector(".plmge-criterion-body").hidden, true);
+  assert.equal(document.querySelector(".plmge-item").hidden, true);
   const form = document.querySelector('form[name="manual-grading-form"]');
   assert.equal(
     submit(form, form.querySelector('[value="add_manual_grade"]')),

@@ -3,7 +3,7 @@ export interface RubricItem {
   label: HTMLLabelElement;
   row: HTMLElement;
   description: HTMLElement;
-  points: number;
+  score: HTMLElement;
   groupName: string | null;
   prefixLength: number;
   originalKey: string | null;

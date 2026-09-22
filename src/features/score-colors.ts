@@ -6,6 +6,7 @@ const SCORE_PATTERN = /\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*\)/g;
 /** Adds semantic Bootstrap color classes to rubric score fractions. */
 export class ScoreColors implements Lifecycle {
   private enabled = false;
+  private restorations = new WeakMap<HTMLElement, () => void>();
 
   constructor(private isEnabled: () => boolean) {}
 
@@ -14,14 +15,16 @@ export class ScoreColors implements Lifecycle {
   }
 
   stop() {
-    document.querySelectorAll(".plmge-score").forEach((score) => {
-      const parent = score.parentNode;
-      if (!parent) return;
-      parent.replaceChild(
-        document.createTextNode(score.textContent ?? ""),
-        score,
-      );
-      parent.normalize();
+    document.querySelectorAll<HTMLElement>(".plmge-score").forEach((score) => {
+      const restore = this.restorations.get(score);
+      if (restore) restore();
+      else
+        score.classList.remove(
+          "plmge-score",
+          "text-success",
+          "text-warning",
+          "text-danger",
+        );
     });
   }
 
@@ -70,6 +73,18 @@ export class ScoreColors implements Lifecycle {
         position = start + match[0].length;
       }
       fragment.append(text.slice(position));
+      // Keep the original Text node: criterion-prefix restoration may own it.
+      // Weak keys allow discarded React/summary markup to be collected.
+      const nodes = [...fragment.childNodes];
+      const restore = () => {
+        const parent = nodes[0].parentNode;
+        if (!parent || nodes.some((node) => node.parentNode !== parent)) return;
+        parent.insertBefore(textNode, nodes[0]);
+        for (const node of nodes) parent.removeChild(node);
+      };
+      fragment
+        .querySelectorAll<HTMLElement>(".plmge-score")
+        .forEach((score) => this.restorations.set(score, restore));
       textNode.replaceWith(fragment);
     }
   }
@@ -78,8 +93,9 @@ export class ScoreColors implements Lifecycle {
     document
       .querySelectorAll<HTMLElement>(".plmge-criterion")
       .forEach((root) => {
-        const selected = root.querySelector<HTMLInputElement>(
-          ".plmge-item input:checked",
+        const heading = root.querySelector(".plmge-criterion-heading")!;
+        const selected = document.querySelector<HTMLInputElement>(
+          `[data-plmge-criterion="${heading.id}"] input:checked`,
         );
         const source = selected
           ?.closest(".plmge-item")

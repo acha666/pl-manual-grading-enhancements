@@ -4,43 +4,33 @@ import { DIGIT_KEYS } from "../core/config.js";
 export class ShortcutManager implements Lifecycle {
   private generatedBadges = new Map<RubricItem, HTMLElement>();
   private shortcutMap = new Map<string, HTMLInputElement>();
-  private started = false;
   constructor(
     private contract: Contract,
     private getVisibleItems: () => readonly RubricItem[],
     private isEnabled: () => boolean,
   ) {
-    this.handleKeypress = this.handleKeypress.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
   }
 
   start() {
-    // Capture digit keys before PrairieLearn's document-level bubbling listener.
-    // Its listener checks a live data-key-binding value for every item and can
-    // otherwise activate several items while the mapping changes mid-keypress.
+    // Own digit shortcuts before React changes selection without DOM change events.
+    document.addEventListener("keydown", this.handleKeydown, true);
     this.sync();
   }
 
   stop() {
-    if (this.started) {
-      document.removeEventListener("keypress", this.handleKeypress, true);
-      this.started = false;
-    }
+    document.removeEventListener("keydown", this.handleKeydown, true);
     this.restore();
   }
 
   sync() {
     if (!this.isEnabled()) {
-      if (this.started) {
-        document.removeEventListener("keypress", this.handleKeypress, true);
-        this.started = false;
-      }
       this.restore();
+      for (const item of this.contract.items) {
+        if (item.originalKey)
+          this.shortcutMap.set(item.originalKey, item.input);
+      }
       return;
-    }
-
-    if (!this.started) {
-      document.addEventListener("keypress", this.handleKeypress, true);
-      this.started = true;
     }
 
     const reservedKeys = new Set(
@@ -59,6 +49,10 @@ export class ShortcutManager implements Lifecycle {
     );
 
     this.shortcutMap.clear();
+    for (const item of this.contract.items) {
+      if (!item.groupName && item.originalKey)
+        this.shortcutMap.set(item.originalKey, item.input);
+    }
     this.contract.groupedItems.forEach((item) => this.setShortcut(item, null));
 
     visibleItems.slice(0, availableKeys.length).forEach((item, index) => {
@@ -106,7 +100,7 @@ export class ShortcutManager implements Lifecycle {
     badge.hidden = false;
   }
 
-  private handleKeypress(event: KeyboardEvent) {
+  private handleKeydown(event: KeyboardEvent) {
     if (!DIGIT_KEYS.includes(event.key)) return;
 
     if (
@@ -117,7 +111,6 @@ export class ShortcutManager implements Lifecycle {
       return;
     }
 
-    if (!this.isEnabled()) return;
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
     if (
       !(event.target instanceof HTMLElement) ||
@@ -133,11 +126,10 @@ export class ShortcutManager implements Lifecycle {
     }
     if (document.querySelector(".modal.show")) return;
 
-    const input = this.shortcutMap.get(event.key);
-    if (!input || input.matches(":disabled, [readonly]")) return;
-
+    // Also consume unmapped digits: upstream still retains the original keys.
     event.preventDefault();
     event.stopImmediatePropagation();
-    input.click();
+    const input = this.shortcutMap.get(event.key);
+    if (input && !input.matches(":disabled, [readonly]")) input.click();
   }
 }

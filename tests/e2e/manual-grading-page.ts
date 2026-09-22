@@ -7,7 +7,7 @@ export function manualGradingPage(page: Page) {
   );
   const criteria = page.locator(".plmge-criterion");
   const feedback = page.locator(
-    'textarea[name="submission_note"].js-submission-feedback',
+    '.js-main-grading-panel textarea[name="submission_note"]',
   );
   const form = page.locator(
     '.js-main-grading-panel form[name="manual-grading-form"]',

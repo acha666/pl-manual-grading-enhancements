@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.2
+
+- Support PrairieLearn’s React manual-grading panel: read displayed rubric scores, synchronize selections and feedback through native events, and handle in-place rubric updates.
+- Keep rubric rows under their native parents, restore original text nodes when removing score colors, update summaries without resetting expanded criteria, and intercept the current digit shortcuts before upstream handlers.
+- Remove obsolete rubric data-attribute and feedback-class assumptions; pin deployment tests to PrairieLearn `cd725c3358721719726eb1eef1d17f08d064c5c9` and add offline React HAR regressions.
+
 ## 3.3.1
 
 - Stabilized the Docker rubric-refresh test by waiting for Bootstrap expansion to finish and verifying the native save response before checking panel replacement. Added coverage with a slower expansion animation.

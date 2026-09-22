@@ -6,7 +6,7 @@ test("valid grading appends the authenticated grader name and emits input", () =
   const dom = boot();
   const { document, Event } = dom.window;
   const form = document.querySelector('form[name="manual-grading-form"]');
-  const feedback = document.querySelector("textarea.js-submission-feedback");
+  const feedback = document.querySelector('textarea[name="submission_note"]');
   let inputEvents = 0;
   feedback.addEventListener("input", (event) => {
     assert.equal(event instanceof Event, true);
@@ -28,7 +28,7 @@ test("a non-rubric manual-grading page keeps attribution as an independent featu
   const dom = boot({ grouped: false, activeRubric: false });
   const { document } = dom.window;
   const form = document.querySelector('form[name="manual-grading-form"]');
-  const feedback = document.querySelector("textarea.js-submission-feedback");
+  const feedback = document.querySelector('textarea[name="submission_note"]');
 
   feedback.value = "No rubric feedback";
   submit(form, form.querySelector('[value="add_manual_grade"]'));

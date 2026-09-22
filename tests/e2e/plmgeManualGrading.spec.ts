@@ -83,7 +83,7 @@ test("complete manual grading workflow on the official Docker deployment", async
   });
 
   const { criteria } = grading;
-  await test.step("Enhance the saved rubric and reinitialize after panel replacement", async () => {
+  await test.step("Enhance the saved rubric and update after saving rubric settings", async () => {
     await page.goto(manualGradingIQUrl);
     await expect(grading.marker).toHaveCount(1);
     await expect(
@@ -104,8 +104,8 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(grading.gradingColumn).toHaveClass(/plmge-sticky-grading/);
     await page.getByRole("button", { name: "Manual grading options" }).click();
 
-    // Saving an existing rubric triggers the upstream panel replacement that
-    // the element must handle. Course setup and rubric creation are frozen.
+    // Saving rubric settings updates the React panel in place. Course setup
+    // and rubric creation remain frozen in the saved database.
     const cardMaxHeight = await grading.gradingColumn.evaluate(
       (card) => getComputedStyle(card).maxHeight,
     );
@@ -133,6 +133,8 @@ test("complete manual grading workflow on the official Docker deployment", async
       .first()
       .fill("5");
     const previousForm = await grading.form.elementHandle();
+    await grading.feedback.fill("Unsaved draft");
+    await grading.rubricItem("Excellent").check();
     const saved = page.waitForResponse((response) => {
       // PL redirects the save POST to grading_rubric_panels; validate the
       // final response consumed by the native component, not the 302.
@@ -150,13 +152,6 @@ test("complete manual grading workflow on the official Docker deployment", async
       .click();
     expect((await saved).ok()).toBe(true);
 
-    // Verify a real replacement occurred, then check reactivation without a reload.
-    await expect
-      .poll(() => previousForm!.evaluate((form) => form.isConnected), {
-        timeout: 10000,
-      })
-      .toBe(false);
-    await previousForm!.dispose();
     await transitionStyle.evaluate((style) =>
       style.parentNode?.removeChild(style),
     );
@@ -167,15 +162,30 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(criteria.nth(0)).toContainText("Opening");
     await expect(criteria.nth(1)).toContainText("Headers");
     await expect(
-      criteria.nth(0).locator("input.js-selectable-rubric-item"),
+      grading.form.locator(
+        '[data-plmge-criterion="plmge-criterion-heading-1"] input.js-selectable-rubric-item',
+      ),
     ).toHaveCount(2);
-    await expect(grading.rubricItem("Excellent")).toHaveAttribute(
-      "data-rubric-item-points",
-      "5",
-    );
     await expect(
-      criteria.nth(1).locator("input.js-selectable-rubric-item"),
+      grading
+        .rubricItem("Excellent")
+        .locator("..")
+        .locator('[data-testid="rubric-item-points"]'),
+    ).toHaveText("[+5]");
+    await expect(
+      grading.form.locator(
+        '[data-plmge-criterion="plmge-criterion-heading-2"] input.js-selectable-rubric-item',
+      ),
     ).toHaveCount(1);
+    expect(
+      await grading.form.evaluate(
+        (current, previous) => current === previous,
+        previousForm,
+      ),
+    ).toBe(true);
+    await previousForm!.dispose();
+    await expect(grading.feedback).toHaveValue("Unsaved draft");
+    await expect(grading.rubricItem("Excellent")).toBeChecked();
     await expect(
       page.getByText("Ungrouped feedback", { exact: true }),
     ).toBeVisible();
@@ -288,8 +298,8 @@ test("complete manual grading workflow on the official Docker deployment", async
     await expect(grading.gradingColumn).toHaveCSS("overflow-y", "auto");
     await grading.setOption("Collapse completed criteria", true);
     await page.getByRole("button", { name: "Manual grading options" }).click();
-    await expect(criteria.nth(0).locator(".plmge-criterion-body")).toBeHidden();
-    await expect(criteria.nth(1).locator(".plmge-criterion-body")).toBeHidden();
+    await expect(grading.rubricItem("Excellent")).toBeHidden();
+    await expect(grading.rubricItem("All required")).toBeHidden();
   });
 
   await test.step("Save and reopen the grade to verify persisted feedback and rubric selections", async () => {
@@ -307,6 +317,7 @@ test("complete manual grading workflow on the official Docker deployment", async
     const gradePayload = new URLSearchParams(
       gradeResponse.request().postData() ?? "",
     );
+    expect(gradePayload.get("score_manual_points")).toBe("5");
     // HTML form submission normalizes textarea newlines to CRLF.
     expect(gradePayload.get("submission_note")?.replace(/\r\n/g, "\n")).toBe(
       "Correct solution.\n\nGraded by: Dev User",

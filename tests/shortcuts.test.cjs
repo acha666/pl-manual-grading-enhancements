@@ -1,3 +1,4 @@
+const { criterionFor } = require("./fixtures.cjs");
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { boot } = require("./fixtures.cjs");
@@ -9,13 +10,13 @@ test("collapse mode hides completed criteria and remaps only grouped shortcuts",
 
   const first = document.querySelector('[value="a1"]');
   first.click();
-  const criterion = first.closest(".plmge-criterion");
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, true);
+  const criterion = criterionFor(first);
+  assert.equal(first.closest(".plmge-item").hidden, true);
   assert.equal(document.querySelector('[value="u1"]').dataset.keyBinding, "3");
   assert.equal(document.querySelector('[value="b1"]').dataset.keyBinding, "1");
   assert.equal(document.querySelector('[value="b2"]').dataset.keyBinding, "2");
 
-  const keyEvent = new dom.window.KeyboardEvent("keypress", {
+  const keyEvent = new dom.window.KeyboardEvent("keydown", {
     key: "1",
     bubbles: true,
     cancelable: true,
@@ -30,19 +31,19 @@ test("collapse mode does not re-collapse a criterion after it is manually expand
 
   const first = document.querySelector('[value="a1"]');
   first.click();
-  const criterion = first.closest(".plmge-criterion");
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, true);
+  const criterion = criterionFor(first);
+  assert.equal(first.closest(".plmge-item").hidden, true);
 
   criterion.querySelector(".plmge-criterion-heading").click();
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  assert.equal(first.closest(".plmge-item").hidden, false);
   const collapse = document.querySelector('[data-setting="collapseCompleted"]');
   collapse.click();
   collapse.click();
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  assert.equal(first.closest(".plmge-item").hidden, false);
   document.querySelector('[value="a2"]').click();
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  assert.equal(first.closest(".plmge-item").hidden, false);
   document.querySelector('[value="a1"]').click();
-  assert.equal(criterion.querySelector(".plmge-criterion-body").hidden, false);
+  assert.equal(first.closest(".plmge-item").hidden, false);
 });
 
 test("typing, modifiers, repeats, and open modals do not trigger rubric shortcuts", () => {
@@ -56,7 +57,7 @@ test("typing, modifiers, repeats, and open modals do not trigger rubric shortcut
     [document.body, { repeat: true }],
   ]) {
     target.dispatchEvent(
-      new window.KeyboardEvent("keypress", {
+      new window.KeyboardEvent("keydown", {
         key: "1",
         bubbles: true,
         cancelable: true,
@@ -69,7 +70,7 @@ test("typing, modifiers, repeats, and open modals do not trigger rubric shortcut
   modal.className = "modal show";
   document.body.append(modal);
   document.body.dispatchEvent(
-    new window.KeyboardEvent("keypress", { key: "1", bubbles: true }),
+    new window.KeyboardEvent("keydown", { key: "1", bubbles: true }),
   );
   assert.equal(document.querySelector('[value="a1"]').checked, false);
 });
@@ -104,10 +105,10 @@ test("generated badges are restored through option changes and panel refreshes",
     assert.equal(originalBadge.hidden, false);
 
     collapse.click();
-    document
-      .querySelector(".js-main-grading-panel")
-      .append(document.createElement("div"));
-    await new Promise((resolve) => window.queueMicrotask(resolve));
+    document.dispatchEvent(
+      new document.defaultView.Event("instance-question-grading-panel-update"),
+    );
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
     assert.equal(label.querySelectorAll("kbd").length, 1);
     document.querySelector('[data-setting="collapseCompleted"]').click();
     assert.equal(label.querySelector("kbd"), null);

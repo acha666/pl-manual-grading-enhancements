@@ -23,14 +23,18 @@ function readRubricItem(
   );
   ids.add(input.value);
 
-  const points = Number(input.dataset.rubricItemPoints);
-  requireCondition(
-    Number.isFinite(points),
-    `Rubric item ${input.value} has invalid point data.`,
-  );
-
   const label = input.closest<HTMLLabelElement>(SELECTORS.rubricLabel);
   requireCondition(label, `Rubric item ${input.value} has no expected label.`);
+
+  const score = requireExactlyOne<HTMLElement>(
+    label,
+    SELECTORS.score,
+    `rubric item ${input.value} score`,
+  );
+  requireCondition(
+    /^\[\s*[+-]?\d+(?:\.\d+)?%?\s*\]$/.test(score.textContent.trim()),
+    `Rubric item ${input.value} has invalid point data.`,
+  );
 
   const descriptions = [
     ...label.querySelectorAll<HTMLElement>(SELECTORS.description),
@@ -60,7 +64,7 @@ function readRubricItem(
     label,
     row,
     description,
-    points,
+    score,
     groupName: match?.[2].trim() ?? null,
     prefixLength: match?.[1].length ?? 0,
     originalKey: key,
@@ -89,20 +93,12 @@ export function buildContract() {
     "main manual-grading form",
   );
 
-  const rubricActive = form.dataset.rubricActive === "true";
   const inputs = [
     ...form.querySelectorAll<HTMLInputElement>(SELECTORS.rubricItem),
   ];
-  requireCondition(
-    !rubricActive || inputs.length > 0,
-    "The active rubric has no selectable rubric items.",
-  );
-
   const ids = new Set<string>();
   const items = inputs.map((input, index) => readRubricItem(input, index, ids));
-  const groupedItems = rubricActive
-    ? items.filter((item) => item.groupName)
-    : [];
+  const groupedItems = items.filter((item) => item.groupName);
 
   if (groupedItems.length > 0) {
     const rubricParents = new Set(

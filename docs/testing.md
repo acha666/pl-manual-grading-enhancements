@@ -5,8 +5,8 @@ For fast local checks, see the [development guide](development.md#verification).
 ## Run the suite
 
 Use Node.js 20+, npm 9+, a running Docker daemon, and Chromium with its system
-libraries. The browser runs on the host; PrairieLearn and its services run in the
-official container.
+libraries. The runner and browser must be able to reach Docker’s published
+localhost ports; PrairieLearn and its services run in the official container.
 
 ```sh
 npm ci
@@ -68,6 +68,24 @@ Both E2E commands default to `tests/e2e/upstream-image.txt`;
 `PRAIRIELEARN_IMAGE` overrides the pin. To upgrade it, test the target image against
 the saved state, then copy the tested repository digest from
 `test-results/deployment/image.json` into `tests/e2e/upstream-image.txt`.
+
+The current pin is PrairieLearn `cd725c3358721719726eb1eef1d17f08d064c5c9`,
+which uses the React grading panel. The saved database remains unchanged and is
+migrated by that image.
+
+For a local capture with the React panel, build the element and replay it offline:
+
+```sh
+npm run build
+node tests/browser/har-manual-grading.cjs capture.har
+```
+
+Run these checks in the devcontainer or an equivalent Docker test environment.
+The replay serves captured upstream scripts and local element assets, blocks all
+uncaptured requests and writes, and exercises delayed hydration, exclusive
+selection, percentage display, rubric row removal, shortcuts, and feedback state.
+Keep HAR files private; they can contain credentials and student data. This replay
+does not replace the deployment test's persisted-grade checks.
 
 ## Diagnostics and cleanup
 

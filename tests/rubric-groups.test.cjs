@@ -1,3 +1,4 @@
+const { criterionFor } = require("./fixtures.cjs");
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { boot, submit } = require("./fixtures.cjs");
@@ -6,7 +7,7 @@ test("each criterion is mutually exclusive and reports a valid summary", () => {
   const dom = boot();
   const { document } = dom.window;
   const opening = document.querySelectorAll(
-    '.plmge-criterion [name="rubric_item_selected_manual"]',
+    '.plmge-item [name="rubric_item_selected_manual"]',
   );
   const first = opening[0];
   const second = opening[1];
@@ -16,10 +17,9 @@ test("each criterion is mutually exclusive and reports a valid summary", () => {
 
   assert.equal(first.checked, false);
   assert.equal(second.checked, true);
-  assert.equal(second.closest(".plmge-criterion").dataset.state, "complete");
+  assert.equal(criterionFor(second).dataset.state, "complete");
   assert.match(
-    second.closest(".plmge-criterion").querySelector(".plmge-criterion-summary")
-      .textContent,
+    criterionFor(second).querySelector(".plmge-criterion-summary").textContent,
     /Adequate \[\+2\]/,
   );
 });

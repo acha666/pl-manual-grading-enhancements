@@ -27,11 +27,15 @@ export class FeedbackAttribution implements Lifecycle {
       .replace(TRAILING_ATTRIBUTION, "")
       .trimEnd();
     const attribution = `Graded by: ${this.graderName}`;
-    this.feedback.value = feedbackBody
+    const value = feedbackBody
       ? `${feedbackBody}\n\n${attribution}`
       : attribution;
 
-    // PrairieLearn listens for input to resize the textarea and update its UI.
+    // Use the native setter so React observes the change through its input event.
+    Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value",
+    )!.set!.call(this.feedback, value);
     this.feedback.dispatchEvent(new Event("input", { bubbles: true }));
   }
 }

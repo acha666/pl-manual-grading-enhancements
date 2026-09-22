@@ -8,8 +8,9 @@ export const SELECTORS = Object.freeze({
   gradingPanel: ".js-main-grading-panel",
   rubricItem: "input.js-selectable-rubric-item",
   rubricLabel: "label.js-selectable-rubric-item-label",
+  score: '[data-testid="rubric-item-points"]',
   description: '[data-testid="rubric-item-description"]',
-  feedback: 'textarea[name="submission_note"].js-submission-feedback',
+  feedback: 'textarea[name="submission_note"]',
   gradeAction:
     'button[type="submit"][name="__action"][value^="add_manual_grade"]',
   graderMenu: '#username-nav[data-view-type="instructor"] #navbarDropdown',

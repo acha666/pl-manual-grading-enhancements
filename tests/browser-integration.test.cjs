@@ -28,7 +28,10 @@ test("full PrairieLearn-shaped page initializes and builds grouped criteria", ()
   );
   assert.deepEqual(
     [...document.querySelectorAll(".plmge-criterion")].map(
-      (criterion) => criterion.querySelectorAll(".plmge-item").length,
+      (criterion) =>
+        document.querySelectorAll(
+          `[data-plmge-criterion="${criterion.querySelector("button").id}"]`,
+        ).length,
     ),
     [2, 2],
   );
@@ -75,7 +78,7 @@ test("reinitializes after PrairieLearn replaces the grading panel contents", asy
   const { document } = dom.window;
   document.querySelector(".js-main-grading-panel").innerHTML = replacement;
 
-  await new Promise((resolve) => dom.window.queueMicrotask(resolve));
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
 
   assert.ok(document.documentElement.dataset.plManualGradingEnhancements);
   assert.equal(document.querySelectorAll(".plmge-criterion").length, 2);
@@ -126,7 +129,7 @@ test("optional view failure does not stop rubric validation or attribution", () 
   );
   document.querySelector('[value="a1"]').click();
   document.querySelector('[value="b1"]').click();
-  const feedback = document.querySelector("textarea.js-submission-feedback");
+  const feedback = document.querySelector('textarea[name="submission_note"]');
   submit(form, form.querySelector('[value="add_manual_grade"]'));
   assert.match(feedback.value, /Graded by: Ada Lovelace/);
 });
@@ -177,18 +180,14 @@ test("refreshing an existing form restores labels and preserves selected items",
   const { document } = dom.window;
   const first = document.querySelector('[value="a1"]');
   first.click();
-  document
-    .querySelector(".js-main-grading-panel")
-    .append(document.createElement("div"));
-  await new Promise((resolve) => dom.window.queueMicrotask(resolve));
+  document.dispatchEvent(
+    new document.defaultView.Event("instance-question-grading-panel-update"),
+  );
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
   assert.equal(document.querySelector('[value="a1"]'), first);
   assert.equal(first.checked, true);
   assert.equal(document.querySelector(".plmge-feature-messages"), null);
-  assert.equal(
-    first.closest(".plmge-criterion").querySelector(".plmge-criterion-body")
-      .hidden,
-    true,
-  );
+  assert.equal(first.closest(".plmge-item").hidden, true);
   assert.equal(document.querySelectorAll(".plmge-criterion").length, 2);
   assert.equal(document.querySelectorAll(".plmge-options-menu").length, 1);
   assert.equal(
@@ -224,10 +223,10 @@ test("repeated refreshes preserve rich descriptions and original rubric nodes", 
   input.click();
 
   for (let refresh = 0; refresh < 3; refresh++) {
-    document
-      .querySelector(".js-main-grading-panel")
-      .append(document.createElement("div"));
-    await new Promise((resolve) => dom.window.queueMicrotask(resolve));
+    document.dispatchEvent(
+      new document.defaultView.Event("instance-question-grading-panel-update"),
+    );
+    await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
 
     assert.equal(document.querySelector('[value="a1"]'), input);
     assert.equal(input.checked, true);

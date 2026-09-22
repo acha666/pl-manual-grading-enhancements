@@ -44,11 +44,11 @@ function rubricRow({
           class="js-selectable-rubric-item"
           name="rubric_item_selected_manual"
           value="${id}"
-          data-rubric-item-points="${points}"
           ${key ? `data-key-binding="${key}"` : ""}
           ${checked ? "checked" : ""}
         />
         ${keyMarkup}
+        <span data-testid="rubric-item-points">[${points >= 0 ? "+" : ""}${points}]</span>
         <span data-testid="rubric-item-description">${groupText}${description}</span>
       </label>
     </div>`;
@@ -107,10 +107,10 @@ function pageHtml({
       });
 
   const gradingPanel = `<div class="js-main-grading-panel">
-    <form name="manual-grading-form" data-rubric-active="${activeRubric}">
+    <form name="manual-grading-form">
       <input type="hidden" name="submission_id" value="42" />
-      ${rows}
-      ${includeAttribution ? '<textarea name="submission_note" class="js-submission-feedback"></textarea>' : ""}
+      ${activeRubric ? rows : ""}
+      ${includeAttribution ? '<textarea name="submission_note"></textarea>' : ""}
       <button type="submit" name="__action" value="add_manual_grade">Submit</button>
       ${includeView ? '<button type="submit" name="__action" value="next_instance_question">Skip</button>' : ""}
     </form>
@@ -203,7 +203,15 @@ function submit(form, button) {
   );
 }
 
+function criterionFor(input) {
+  const headingId = input.closest(".plmge-item").dataset.plmgeCriterion;
+  return input.ownerDocument
+    .getElementById(headingId)
+    .closest(".plmge-criterion");
+}
+
 module.exports = {
+  criterionFor,
   boot,
   createPage,
   fireDOMContentLoaded,

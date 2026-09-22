@@ -65,10 +65,10 @@ test("card sizing follows the main container and cleans up on disable and refres
 
   option().click();
   const previousObserver = [...observers][0];
-  document
-    .querySelector(".js-main-grading-panel")
-    .append(document.createElement("div"));
-  await new Promise((resolve) => window.queueMicrotask(resolve));
+  document.dispatchEvent(
+    new document.defaultView.Event("instance-question-grading-panel-update"),
+  );
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
   assert.equal(observers.size, 1);
   assert.equal(observers.has(previousObserver), false);
   assert.equal(option().checked, true);

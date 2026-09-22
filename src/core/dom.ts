@@ -42,7 +42,3 @@ export function stripTextPrefix(element: HTMLElement, length: number) {
     remaining -= consumed;
   }
 }
-
-export function formatPoints(points: number) {
-  return `${points >= 0 ? "+" : ""}${points}`;
-}

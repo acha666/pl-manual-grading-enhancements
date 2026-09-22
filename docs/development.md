@@ -38,10 +38,18 @@ test runner with jsdom. Generated assets are not committed.
 
 `RubricGroups` owns selection rules, submission validation, and collapse policy.
 `CriterionView` owns group markup, summaries, accessibility, and restoration of
-original rubric nodes. Keep grading policy in the coordinator and presentation
+original rubric decorations. Native rows keep their parents and order so React
+can reconcile them. Keep grading policy in the coordinator and presentation
 in the view.
 
-`ShortcutManager` receives visible items through a callback. It owns generated
+Rubric scores come from the displayed score nodes, including percentage units.
+Score changes refresh summaries; the upstream `instance-question-grading-panel-update`
+event restores decorations before React updates data, then rebuilds the integration.
+Form or rubric-node replacements are also detected. Checkbox clicks and native
+textarea setters with input events keep React state synchronized.
+
+`ShortcutManager` captures digit `keydown` events and receives visible items through
+a callback. It owns generated
 badges; the shared `RubricItem` contract describes upstream markup. Features use
 `core/submission.ts` to identify grading actions.
 
