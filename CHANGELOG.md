@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.3
+
+- Fix WebKit timestamp parsing and premature initialization during React hydration.
+- Test Chromium, Firefox, and WebKit against pinned and latest PrairieLearn deployments.
+- Simplify browser configuration, DOM checks, preview cleanup, and score matching.
+
 ## 3.3.2
 
 - Support PrairieLearn’s React manual-grading panel: read displayed rubric scores, synchronize selections and feedback through native events, and handle in-place rubric updates.

@@ -1,5 +1,13 @@
 import path from "node:path";
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
+
+const browserName = process.env.PLMGE_BROWSER || "chromium";
+if (
+  browserName !== "chromium" &&
+  browserName !== "firefox" &&
+  browserName !== "webkit"
+)
+  throw new Error(`Unsupported browser: ${browserName}`);
 
 if (!process.env.PLMGE_BASE_URL) {
   throw new Error(
@@ -30,7 +38,8 @@ export default defineConfig({
     ],
   ],
   use: {
-    ...devices["Desktop Chrome"],
+    browserName,
+    viewport: { width: 1280, height: 720 },
     baseURL: process.env.PLMGE_BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

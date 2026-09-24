@@ -47,6 +47,9 @@ Score changes refresh summaries; the upstream `instance-question-grading-panel-u
 event restores decorations before React updates data, then rebuilds the integration.
 Form or rubric-node replacements are also detected. Checkbox clicks and native
 textarea setters with input events keep React state synchronized.
+Initialization waits for the upstream feedback-sizing effect to set an inline
+height; `load` does not guarantee React hydration. A 15-second timeout reports a
+critical failure. Recheck this DOM contract when upgrading upstream.
 
 `ShortcutManager` captures digit `keydown` events and receives visible items through
 a callback. It owns generated
@@ -59,6 +62,7 @@ and the native `next_instance_question` action. `modified_at` is an instance-que
 concurrency token, not a submission timestamp. PL currently renders submission times
 as `YYYY-MM-DD HH:mm:ss (zone)`; UTC, GMT offsets, and North American E/C/M/P standard
 and daylight abbreviations are supported. Unrecognized or missing times block saving.
+Recognized zones are converted to ISO offsets before parsing for WebKit compatibility.
 The guard is reapplied after panel replacement and cleaned up through the runtime.
 
 `CodePreview` decorates native `.c` previews while enabled and restores plain text

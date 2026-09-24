@@ -15,6 +15,7 @@ export class ScoreColors implements Lifecycle {
   }
 
   stop() {
+    this.enabled = false;
     document.querySelectorAll<HTMLElement>(".plmge-score").forEach((score) => {
       const restore = this.restorations.get(score);
       if (restore) restore();
@@ -30,7 +31,7 @@ export class ScoreColors implements Lifecycle {
 
   sync() {
     const enabled = this.isEnabled();
-    if (enabled === this.enabled && !enabled) return;
+    if (!enabled && !this.enabled) return;
     this.enabled = enabled;
     if (enabled) {
       document
@@ -54,14 +55,13 @@ export class ScoreColors implements Lifecycle {
     for (const textNode of textNodes) {
       if (textNode.parentElement?.classList.contains("plmge-score")) continue;
       const text = textNode.nodeValue ?? "";
-      SCORE_PATTERN.lastIndex = 0;
-      if (!SCORE_PATTERN.test(text)) continue;
-      SCORE_PATTERN.lastIndex = 0;
+      const matches = [...text.matchAll(SCORE_PATTERN)];
+      if (matches.length === 0) continue;
 
       const fragment = document.createDocumentFragment();
       let position = 0;
-      for (const match of text.matchAll(SCORE_PATTERN)) {
-        const start = match.index ?? 0;
+      for (const match of matches) {
+        const start = match.index;
         fragment.append(text.slice(position, start));
         const score = document.createElement("span");
         const numerator = Number(match[1]);

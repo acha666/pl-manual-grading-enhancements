@@ -10,7 +10,7 @@ export function requireExactlyOne<T extends Element = HTMLElement>(
   selector: string,
   description: string,
 ): T {
-  const matches = [...root.querySelectorAll<T>(selector)];
+  const matches = root.querySelectorAll<T>(selector);
   if (matches.length !== 1) {
     throw new IntegrationError(
       `Expected exactly one ${description}; found ${matches.length}. Selector: ${selector}`,

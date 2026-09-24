@@ -78,17 +78,39 @@ function boot() {
 }
 
 function ready() {
-  if (
-    document.querySelector('[data-component="InstanceQuestionGradingPanel"]')
-  ) {
-    // Upstream hydrates its React islands after DOMContentLoaded. Let the
-    // loaded component modules and their scheduled hydration run first.
-    if (document.readyState === "complete") window.setTimeout(boot, 0);
-    else
-      window.addEventListener("load", () => window.setTimeout(boot, 0), {
-        once: true,
-      });
-  } else boot();
+  if (!document.querySelector(SELECTORS.marker)) return;
+  const island = document.querySelector(SELECTORS.gradingIsland);
+  if (!island) return boot();
+
+  // Upstream's feedback-sizing effect sets inline height after React commits.
+  // load (even followed by a timer) does not guarantee hydration in WebKit.
+  const hydrated = () =>
+    !!island.querySelector<HTMLTextAreaElement>(SELECTORS.feedback)?.style
+      .height;
+  if (hydrated()) return boot();
+  const observer = new MutationObserver(() => {
+    if (!hydrated()) return;
+    observer.disconnect();
+    window.clearTimeout(timeout);
+    boot();
+  });
+  observer.observe(island, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ["style"],
+  });
+  const timeout = window.setTimeout(() => {
+    observer.disconnect();
+    const panel = document.querySelector<HTMLElement>(SELECTORS.gradingPanel);
+    if (panel)
+      showFailure(
+        panel,
+        "Manual grading enhancements",
+        new Error("The upstream grading panel did not finish initializing."),
+        true,
+      );
+  }, 15_000);
 }
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", ready, { once: true });

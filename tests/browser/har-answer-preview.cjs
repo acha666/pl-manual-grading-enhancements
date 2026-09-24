@@ -4,11 +4,13 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const assert = require("node:assert/strict");
-const { chromium } = require("@playwright/test");
+const browsers = require("@playwright/test");
+const browserName = process.env.PLMGE_BROWSER || "chromium";
+assert.ok(["chromium", "firefox", "webkit"].includes(browserName));
 
 (async () => {
   assert.ok(process.argv.length > 2, "Provide a HAR capture to replay");
-  const browser = await chromium.launch({ headless: true });
+  const browser = await browsers[browserName].launch({ headless: true });
   try {
     for (const capture of process.argv.slice(2)) {
       const entries = JSON.parse(fs.readFileSync(capture, "utf8")).log.entries;

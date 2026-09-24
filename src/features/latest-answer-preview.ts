@@ -16,6 +16,15 @@ export class LatestAnswerPreview implements Lifecycle {
   }
 
   stop() {
+    this.enabled = false;
+    this.stopWatching();
+    this.initializedBlock?.removeAttribute(
+      "data-plmge-latest-preview-initialized",
+    );
+    this.initializedBlock = null;
+  }
+
+  private stopWatching() {
     this.previewObserver?.disconnect();
     this.previewObserver = null;
     this.cleanup?.();
@@ -24,10 +33,6 @@ export class LatestAnswerPreview implements Lifecycle {
       window.cancelAnimationFrame(this.frame);
       this.frame = null;
     }
-    this.initializedBlock?.removeAttribute(
-      "data-plmge-latest-preview-initialized",
-    );
-    this.initializedBlock = null;
   }
 
   sync() {
@@ -127,19 +132,12 @@ export class LatestAnswerPreview implements Lifecycle {
       // scroll destination. Mutations in between cancel and reschedule this.
       this.frame = window.requestAnimationFrame(() => {
         this.frame = window.requestAnimationFrame(() => {
-          this.frame = null;
-          this.previewObserver?.disconnect();
-          this.previewObserver = null;
-          this.cleanup?.();
-          this.cleanup = null;
+          this.stopWatching();
           if (item.isConnected) {
             item.scrollIntoView({ behavior: "instant", block: "start" });
           }
         });
       });
-    };
-    const onLoad = () => {
-      update();
     };
     this.previewObserver = new MutationObserver(update);
     this.previewObserver.observe(latest, {
@@ -150,13 +148,13 @@ export class LatestAnswerPreview implements Lifecycle {
       attributeFilter: ["class", "style", "src"],
     });
     latest.addEventListener("shown.bs.collapse", update);
-    latest.addEventListener("load", onLoad, true);
-    latest.addEventListener("error", onLoad, true);
+    latest.addEventListener("load", update, true);
+    latest.addEventListener("error", update, true);
     window.addEventListener("load", update);
     this.cleanup = () => {
       latest.removeEventListener("shown.bs.collapse", update);
-      latest.removeEventListener("load", onLoad, true);
-      latest.removeEventListener("error", onLoad, true);
+      latest.removeEventListener("load", update, true);
+      latest.removeEventListener("error", update, true);
       window.removeEventListener("load", update);
     };
     update();

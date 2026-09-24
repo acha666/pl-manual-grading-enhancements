@@ -4,14 +4,16 @@ For fast local checks, see the [development guide](development.md#verification).
 
 ## Run the suite
 
-Use Node.js 20+, npm 9+, a running Docker daemon, and Chromium with its system
+Use Node.js 20+, npm 9+, a running Docker daemon, and Playwright browsers with their system
 libraries. The runner and browser must be able to reach Docker’s published
 localhost ports; PrairieLearn and its services run in the official container.
 
 ```sh
 npm ci
-npx playwright install chromium --with-deps
+npx playwright install chromium firefox webkit --with-deps
 npm run test:e2e
+PLMGE_BROWSER=firefox npm run test:e2e
+PLMGE_BROWSER=webkit npm run test:e2e
 ```
 
 The runner uses the image pinned in `tests/e2e/upstream-image.txt`, creates a
@@ -19,6 +21,10 @@ disposable container, and copies the test course and current element build into
 `/course`. It restores the saved database before starting PrairieLearn and exposes
 port 3000 through a random localhost-only port. No host course directory or Docker
 socket is mounted in the application container.
+
+`PLMGE_BROWSER` defaults to `chromium`. Each run restores its own database.
+CI tests Chromium, Firefox, and WebKit against the pinned and latest-upstream
+images. Linux WebKit testing does not replace macOS/iOS Safari testing.
 
 The suite covers staff-only activation, rubric grouping and required selections,
 panel refreshes, settings, attribution, and persisted grading. It also changes the
@@ -86,6 +92,7 @@ uncaptured requests and writes, and exercises delayed hydration, exclusive
 selection, percentage display, rubric row removal, shortcuts, and feedback state.
 Keep HAR files private; they can contain credentials and student data. This replay
 does not replace the deployment test's persisted-grade checks.
+Both HAR replay scripts in `tests/browser/` accept `PLMGE_BROWSER`.
 
 ## Diagnostics and cleanup
 

@@ -6,6 +6,8 @@ export const SELECTORS = Object.freeze({
   marker: "span[data-pl-manual-grading-enhancements][hidden]",
   form: 'form[name="manual-grading-form"]',
   gradingPanel: ".js-main-grading-panel",
+  gradingIsland:
+    '.js-hydrated-component[data-component="InstanceQuestionGradingPanel"]',
   rubricItem: "input.js-selectable-rubric-item",
   rubricLabel: "label.js-selectable-rubric-item-label",
   score: '[data-testid="rubric-item-points"]',

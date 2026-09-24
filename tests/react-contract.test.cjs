@@ -8,6 +8,63 @@ const {
   criterionFor,
 } = require("./fixtures.cjs");
 
+test("React hydration must commit before enhancements change its markup", async () => {
+  const dom = createPage();
+  const { window } = dom;
+  const panel = window.document.querySelector(".js-main-grading-panel");
+  panel.dataset.component = "InstanceQuestionGradingPanel";
+  panel.classList.add("js-hydrated-component");
+  loadBundle(window);
+  fireDOMContentLoaded(window);
+  window.dispatchEvent(new window.Event("load"));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(panel.querySelector(".plmge-criterion"), null);
+  panel.querySelector('textarea[name="submission_note"]').style.height = "80px";
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(panel.querySelectorAll(".plmge-criterion").length, 2);
+  dom.window.close();
+});
+
+test("an already hydrated React panel starts immediately", () => {
+  const dom = createPage();
+  const { window } = dom;
+  const panel = window.document.querySelector(".js-main-grading-panel");
+  panel.dataset.component = "InstanceQuestionGradingPanel";
+  panel.classList.add("js-hydrated-component");
+  panel.querySelector('textarea[name="submission_note"]').style.height = "80px";
+  loadBundle(window);
+  fireDOMContentLoaded(window);
+  assert.equal(panel.querySelectorAll(".plmge-criterion").length, 2);
+  dom.window.close();
+});
+
+test("missing upstream hydration contract reports a critical failure", () => {
+  const dom = createPage();
+  const { window } = dom;
+  const panel = window.document.querySelector(".js-main-grading-panel");
+  panel.dataset.component = "InstanceQuestionGradingPanel";
+  panel.classList.add("js-hydrated-component");
+  let expire;
+  window.setTimeout = (callback, delay) => {
+    assert.equal(delay, 15_000);
+    expire = callback;
+    return 1;
+  };
+  loadBundle(window);
+  fireDOMContentLoaded(window);
+  expire();
+  assert.match(
+    panel.querySelector(".alert-danger").textContent,
+    /failed to initialize/,
+  );
+  assert.equal(
+    panel.querySelector('[value="add_manual_grade"]').disabled,
+    true,
+  );
+  assert.equal(panel.querySelector(".plmge-criterion"), null);
+  dom.window.close();
+});
+
 for (const score of [null, "[]", "[NaN]", "[+Infinity]"]) {
   test(`invalid displayed rubric score fails closed: ${score}`, () => {
     const { window } = createPage();

@@ -22,14 +22,35 @@ function submissionTime(form: HTMLFormElement): number {
   const match = text.match(
     /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) \((UTC|GMT|[ECMP][DS]T|GMT[+-]\d{1,2}(?::\d{2})?)\)$/,
   );
-  return match ? Date.parse(`${match[1]} ${match[2]} ${match[3]}`) : NaN;
+  if (!match) return NaN;
+  const offsets: Record<string, string> = {
+    UTC: "Z",
+    GMT: "Z",
+    EST: "-05:00",
+    EDT: "-04:00",
+    CST: "-06:00",
+    CDT: "-05:00",
+    MST: "-07:00",
+    MDT: "-06:00",
+    PST: "-08:00",
+    PDT: "-07:00",
+  };
+  const zone = match[3];
+  const offset =
+    offsets[zone] ??
+    zone.replace(
+      /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/,
+      (_, sign: string, hours: string, minutes: string | undefined) =>
+        `${sign}${hours.padStart(2, "0")}:${minutes ?? "00"}`,
+    );
+  // WebKit rejects PL's space-separated date with a timezone abbreviation.
+  return Date.parse(`${match[1]}T${match[2]}${offset}`);
 }
 
 export class GradingAvailability implements Lifecycle {
   private notice: HTMLDivElement | null = null;
   private buttons = new Map<HTMLButtonElement, boolean>();
   private timer: number | undefined;
-  private blocked = false;
 
   constructor(private contract: Contract) {}
 
@@ -46,7 +67,6 @@ export class GradingAvailability implements Lifecycle {
     const remaining = time + HOUR - Date.now();
     if (!open && Number.isFinite(time) && remaining <= 0) return false;
 
-    this.blocked = true;
     // Include the native conflict form's save actions as well.
     for (const button of document.querySelectorAll<HTMLButtonElement>(
       SELECTORS.gradeAction,
@@ -82,7 +102,6 @@ export class GradingAvailability implements Lifecycle {
 
   private handleSubmit = (event: SubmitEvent) => {
     if (
-      this.blocked &&
       event.target instanceof HTMLFormElement &&
       event.target.matches(SELECTORS.form) &&
       isGradeSubmission(event)
@@ -104,6 +123,5 @@ export class GradingAvailability implements Lifecycle {
     this.buttons.clear();
     this.notice?.remove();
     this.notice = null;
-    this.blocked = false;
   }
 }

@@ -36,12 +36,10 @@ function readRubricItem(
     `Rubric item ${input.value} has invalid point data.`,
   );
 
-  const descriptions = [
-    ...label.querySelectorAll<HTMLElement>(SELECTORS.description),
-  ];
-  requireCondition(
-    descriptions.length === 1,
-    `Rubric item ${input.value} must have exactly one description; found ${descriptions.length}.`,
+  const description = requireExactlyOne(
+    label,
+    SELECTORS.description,
+    `rubric item ${input.value} description`,
   );
 
   const row = label.parentElement;
@@ -50,7 +48,6 @@ function readRubricItem(
     `Rubric item ${input.value} has an unexpected row wrapper.`,
   );
 
-  const description = descriptions[0];
   const match = description.textContent.match(GROUP_PATTERN);
   const key = input.dataset.keyBinding ?? null;
   const badge = label.querySelector<HTMLElement>("kbd.pl-kbd");

@@ -26,9 +26,10 @@ export class CodePreview implements Lifecycle {
   }
 
   sync() {
-    if (this.isEnabled() === this.enabled) return;
+    const enabled = this.isEnabled();
+    if (enabled === this.enabled) return;
     this.stop();
-    if (!this.isEnabled()) return;
+    if (!enabled) return;
     this.enabled = true;
     try {
       document

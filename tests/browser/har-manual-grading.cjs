@@ -3,7 +3,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const assert = require("node:assert/strict");
-const { chromium } = require("@playwright/test");
+const browsers = require("@playwright/test");
+const browserName = process.env.PLMGE_BROWSER || "chromium";
+assert.ok(["chromium", "firefox", "webkit"].includes(browserName));
 
 (async () => {
   assert.ok(process.argv[2], "Provide a manual-grading HAR capture");
@@ -18,7 +20,7 @@ const { chromium } = require("@playwright/test");
   const responses = new Map(
     entries.map((entry) => [entry.request.url, entry.response]),
   );
-  const browser = await chromium.launch({ headless: true });
+  const browser = await browsers[browserName].launch({ headless: true });
   try {
     for (const delay of [0, 500]) {
       const page = await browser.newPage();
@@ -213,7 +215,9 @@ const { chromium } = require("@playwright/test");
       assert.equal(await page.locator(".plmge-feature-messages").count(), 0);
       assert.deepEqual(errors, []);
       await page.close();
-      console.log(`React HAR replay passed (component delay ${delay} ms)`);
+      console.log(
+        `${browserName}: React HAR replay passed (component delay ${delay} ms)`,
+      );
     }
   } finally {
     await browser.close();

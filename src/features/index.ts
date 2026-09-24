@@ -75,7 +75,7 @@ export function startFeatures(contract: Contract, report: Report) {
       feedback,
       graderName,
       contract.form,
-      rubric ? null : (event) => handleUngroupedSubmit(event),
+      rubric ? null : handleUngroupedSubmit,
     );
   });
 

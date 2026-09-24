@@ -62,7 +62,53 @@ for (const [label, now, blocked] of [
     assert.equal(submit(button.form, button), !blocked);
   });
 
-for (const date of ["", "unknown", "2026-09-16 11:12:04 (XYZ)"])
+for (const zone of [
+  "UTC",
+  "GMT",
+  "EST",
+  "EDT",
+  "CST",
+  "CDT",
+  "MST",
+  "MDT",
+  "PST",
+  "PDT",
+  "GMT+5:30",
+  "GMT-8",
+  "GMT+0",
+])
+  test(`submission timezone is parsed as ISO: ${zone}`, () => {
+    const dom = createPage({ grouped: false });
+    const { window } = dom;
+    const parse = window.Date.parse;
+    const expected = parse(`2026-09-16 11:12:04 ${zone}`);
+    window.Date.now = () => expected + 60 * 60 * 1000;
+    window.Date.parse = (value) => {
+      assert.match(
+        value,
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/,
+      );
+      assert.equal(parse(value), expected);
+      return parse(value);
+    };
+    window.document.querySelector("#submissionInfoModal-42 td").textContent =
+      `2026-09-16 11:12:04 (${zone})`;
+    loadBundle(window);
+    fireDOMContentLoaded(window);
+    assert.equal(
+      window.document.querySelector('[value="add_manual_grade"]').disabled,
+      false,
+    );
+    dom.window.close();
+  });
+
+for (const date of [
+  "",
+  "unknown",
+  "2026-09-16 11:12:04 (XYZ)",
+  "2026-09-16 11:12:04 (GMT+25)",
+  "2026-09-16 11:12:04 (GMT+5:99)",
+])
   test(`unverifiable date blocks saving: ${date}`, () => {
     const { window } = setup({ date });
     assert.equal(
