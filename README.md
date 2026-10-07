@@ -1,6 +1,6 @@
 # PrairieLearn Manual Grading Enhancements
 
-This course-specific PrairieLearn element adds small client-side enhancements to the manual-grading page. It groups rubric items into required criteria and provides options for panel layout, shortcuts, feedback attribution, and answer previews.
+This course-specific PrairieLearn element adds small client-side enhancements to the manual-grading page. It groups rubric items into required criteria and provides options for shortcuts, feedback attribution, and answer previews.
 
 ## Installation
 
@@ -49,10 +49,6 @@ This uses the page's loaded state and the browser clock, not live server validat
 ## Options
 
 The **Manual grading options** menu is available in the Grading card header. Settings are stored in local storage for the current browser profile.
-
-### Sticky grading panel
-
-Enabled by default. On desktop widths, the right column containing Grading and Staff information sticks near the top of the main content area and scrolls internally. Student answers scroll with the page. Narrow screens retain the normal document layout.
 
 ### Collapse completed criteria
 

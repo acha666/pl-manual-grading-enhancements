@@ -39,7 +39,7 @@ export default defineConfig({
   ],
   use: {
     browserName,
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1600, height: 720 },
     baseURL: process.env.PLMGE_BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

@@ -3,7 +3,6 @@ import { readSettings } from "../core/settings.js";
 import {
   buildAttributionContract,
   buildViewContract,
-  buildPanelLayoutContract,
 } from "../core/feature-contracts.js";
 import type { Contract } from "../core/contract.js";
 import { FeatureRuntime } from "../core/runtime.js";
@@ -11,7 +10,6 @@ import type { SettingName } from "../core/settings.js";
 import { RubricGroups } from "./rubric-groups.js";
 import { ShortcutManager } from "./shortcuts.js";
 import { FeedbackAttribution } from "./attribution.js";
-import { PanelLayout } from "./panel-layout.js";
 import { ViewOptions } from "./view-options.js";
 import { LatestAnswerPreview } from "./latest-answer-preview.js";
 import { ScoreColors } from "./score-colors.js";
@@ -79,16 +77,6 @@ export function startFeatures(contract: Contract, report: Report) {
     );
   });
 
-  const layout = runtime.mount(
-    "Panel layout",
-    () =>
-      new PanelLayout(
-        buildPanelLayoutContract(contract),
-        () => settings.splitScrolling,
-        (error) => report("Panel layout", error, false),
-      ),
-  );
-
   runtime.mount(
     "View options",
     () =>
@@ -96,10 +84,7 @@ export function startFeatures(contract: Contract, report: Report) {
         buildViewContract(contract),
         settings,
         handleSettingChanged,
-        new Set<SettingName>([
-          ...(!attribution ? ["appendGraderName" as const] : []),
-          ...(!layout ? ["splitScrolling" as const] : []),
-        ]),
+        new Set<SettingName>(attribution ? [] : ["appendGraderName"]),
         (error) => report("View options", error, false),
       ),
   );
@@ -125,8 +110,6 @@ export function startFeatures(contract: Contract, report: Report) {
   }
 
   function handleSettingChanged(name: SettingName) {
-    if (name === "splitScrolling")
-      runtime.run(layout, (feature) => feature.sync());
     if (name === "collapseCompleted")
       rubric?.setCollapseEnabled(settings.collapseCompleted);
     if (name === "latestAnswerPreview")

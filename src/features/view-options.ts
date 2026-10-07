@@ -32,7 +32,7 @@ export class ViewOptions implements Lifecycle {
     const menu = document.createElement("div");
 
     header.querySelector(":scope > .plmge-options")?.remove();
-    dropdown.className = "dropdown ms-auto plmge-options";
+    dropdown.className = "dropdown position-static ms-auto plmge-options";
 
     button.type = "button";
     button.className = "btn btn-sm btn-outline-dark dropdown-toggle";

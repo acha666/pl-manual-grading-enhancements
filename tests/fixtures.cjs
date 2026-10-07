@@ -116,9 +116,9 @@ function pageHtml({
     </form>
   </div>`;
   const view = includeView
-    ? `<div class="row">
-        <div class="col-lg-8 col-12" id="response-column">Response</div>
-        <div class="col-lg-4 col-12">
+    ? `<div class="instance-question-manual-grading-panes">
+        <div class="instance-question-manual-grading-question" id="response-column">Response</div>
+        <div class="instance-question-manual-grading-sidebar">
           <div class="card">
             <div class="card-header">${malformed ? "Not grading" : "Grading"}</div>
             ${gradingPanel}
@@ -159,10 +159,6 @@ function createPage(options = {}) {
   });
   const { window } = dom;
 
-  window.ResizeObserver = class ResizeObserver {
-    observe() {}
-    disconnect() {}
-  };
   window.bootstrap = { Dropdown: class Dropdown {} };
   window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0);
   window.cancelAnimationFrame = (id) => window.clearTimeout(id);

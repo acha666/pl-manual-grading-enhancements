@@ -1,1 +1,1 @@
-prairielearn/prairielearn@sha256:2fefeb17f89c031e55c59740f5a6bf9e275593012877b278ffad5ac7476fe3b3
+prairielearn/prairielearn@sha256:a3d63cc428a9f39d60f8f10a1755285740ab21be309e07960fa2af886e35c4b0

@@ -20,7 +20,7 @@ function setup({
     date;
   if (open)
     window.document
-      .querySelector(".app-main-container")
+      .querySelector("#response-column")
       .insertAdjacentHTML(
         "afterbegin",
         '<div class="alert alert-danger" role="alert">This assessment instance is still open. Student may still be able to submit new answers.</div>',

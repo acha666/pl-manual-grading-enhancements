@@ -88,18 +88,6 @@
   font-weight: 600;
 }
 
-@media (min-width: 992px) {
-  .plmge-sticky-grading {
-    position: sticky;
-    top: 8px;
-    align-self: flex-start;
-    max-height: var(--plmge-card-height);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-  }
-}
-
 /* Scoped dark C preview. Preserve native font metrics and scrolling. */
 pre.plmge-code-preview {
   position: relative;

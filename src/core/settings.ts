@@ -7,11 +7,6 @@ interface SettingDefinition {
 }
 
 export const SETTING_DEFINITIONS = {
-  splitScrolling: {
-    defaultValue: true,
-    label: "Sticky grading panel",
-    help: "Keep the Grading card in view with its own scrolling on desktop.",
-  },
   collapseCompleted: {
     defaultValue: true,
     label: "Collapse completed criteria",

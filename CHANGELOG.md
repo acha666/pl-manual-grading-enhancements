@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Remove the custom sticky grading panel now that PrairieLearn provides native split panes; update grading-page checks for the current layout and dropdown behavior.
+- Update the pinned PrairieLearn deployment image and align the testing guide and fixtures with its native markup.
+
 ## 3.3.3
 
 - Fix WebKit timestamp parsing and premature initialization during React hydration.

@@ -14,7 +14,7 @@ test("the view options menu is created from the Grading header contract", () => 
   const menu = document.querySelector(".plmge-options-menu");
 
   assert.ok(menu);
-  assert.equal(menu.querySelectorAll("input[data-setting]").length, 6);
+  assert.equal(menu.querySelectorAll("input[data-setting]").length, 5);
   assert.equal(
     menu.querySelector('[data-setting="appendGraderName"]').checked,
     true,
@@ -35,7 +35,7 @@ test("the view options menu is created from the Grading header contract", () => 
 test("settings are persisted and malformed stored values fall back to safe defaults", () => {
   const key = "pl.manualGradingEnhancements.settings.v1";
   for (const stored of [
-    JSON.stringify({ splitScrolling: true, appendGraderName: "yes" }),
+    JSON.stringify({ appendGraderName: "yes" }),
     "not-json",
   ]) {
     const dom = createPage();
@@ -44,10 +44,6 @@ test("settings are persisted and malformed stored values fall back to safe defau
     loadBundle(window);
     fireDOMContentLoaded(window);
     const menu = window.document.querySelector(".plmge-options-menu");
-    assert.equal(
-      menu.querySelector('[data-setting="splitScrolling"]').checked,
-      true,
-    );
     assert.equal(
       menu.querySelector('[data-setting="collapseCompleted"]').checked,
       true,
@@ -92,7 +88,7 @@ test("storage failures retain usable options and required validation", () => {
   assert.match(document.querySelector(".plmge-error").textContent, /Headers/);
 });
 
-test("all options persist independently across page loads and unknown keys are ignored", () => {
+test("all options persist independently across page loads and retired or unknown keys are ignored", () => {
   const stored = {
     splitScrolling: true,
     collapseCompleted: true,
@@ -109,13 +105,15 @@ test("all options persist independently across page loads and unknown keys are i
   fireDOMContentLoaded(dom.window);
   const menu = dom.window.document.querySelector(".plmge-options-menu");
   const inputs = [...menu.querySelectorAll("input[data-setting]")];
-  assert.equal(inputs.length, 6);
+  assert.equal(inputs.length, 5);
+  assert.equal(menu.querySelector('[data-setting="splitScrolling"]'), null);
   for (const input of inputs) {
     assert.equal(input.checked, stored[input.dataset.setting]);
     input.click();
   }
   const saved = dom.window.localStorage.getItem(key);
   assert.equal(Object.hasOwn(JSON.parse(saved), "unknownOption"), false);
+  assert.equal(Object.hasOwn(JSON.parse(saved), "splitScrolling"), false);
 
   const reloaded = createPage();
   reloaded.window.localStorage.setItem(key, saved);

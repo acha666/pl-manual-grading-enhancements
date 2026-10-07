@@ -30,9 +30,9 @@ The suite covers staff-only activation, rubric grouping and required selections,
 panel refreshes, settings, attribution, and persisted grading. It also changes the
 disposable database to exercise open-instance and recent-submission guards, native
 Next navigation, and grading after the waiting period. The committed snapshot stays
-unchanged. Layout checks cover
-sticky grading, viewport sizing, rubric settings, and narrow screens. Shared
-locators and menu actions live in `tests/e2e/manual-grading-page.ts`.
+unchanged. The suite also checks that the options menu is fully visible and the
+enhancements survive native rubric updates. Shared locators and menu actions live
+in `tests/e2e/manual-grading-page.ts`.
 
 Both views use the development-mode Dev User; production authentication is outside
 the suite's scope. Failed writes are not automatically retried.
@@ -75,9 +75,11 @@ Both E2E commands default to `tests/e2e/upstream-image.txt`;
 the saved state, then copy the tested repository digest from
 `test-results/deployment/image.json` into `tests/e2e/upstream-image.txt`.
 
-The current pin is PrairieLearn `cd725c3358721719726eb1eef1d17f08d064c5c9`,
-which uses the React grading panel. The saved database remains unchanged and is
-migrated by that image.
+The current pin is `sha256:a3d63cc428a9f39d60f8f10a1755285740ab21be309e07960fa2af886e35c4b0`,
+the official image checked on 2026-10-06. It includes the React grading panel,
+native split panes ([#15927](https://github.com/PrairieLearn/PrairieLearn/pull/15927)),
+and dropdown clipping fixes ([#15931](https://github.com/PrairieLearn/PrairieLearn/pull/15931)).
+The saved database remains unchanged and is migrated by that image.
 
 For a local capture with the React panel, build the element and replay it offline:
 
