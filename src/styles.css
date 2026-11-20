@@ -88,7 +88,7 @@
   font-weight: 600;
 }
 
-/* Scoped dark C preview. Preserve native font metrics and scrolling. */
+/* Scoped dark C/Arduino preview. Preserve native font metrics and scrolling. */
 pre.plmge-code-preview {
   position: relative;
   min-width: max-content;
@@ -115,10 +115,12 @@ pre.plmge-code-preview .token.char {
   color: #b5d99c;
 }
 pre.plmge-code-preview .token.number,
+pre.plmge-code-preview .token.boolean,
 pre.plmge-code-preview .token.constant {
   color: #f2c078;
 }
 pre.plmge-code-preview .token.function,
+pre.plmge-code-preview .token.builtin,
 pre.plmge-code-preview .token.class-name {
   color: #8cc8f0;
 }

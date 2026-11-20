@@ -68,8 +68,13 @@ The name is read from PrairieLearn's authenticated staff menu. Skip, navigation,
 
 ### Open latest answer preview
 
-When enabled, opens the newest submitted answer's file preview and scrolls it
-into view on manual-grading pages.
+When enabled, expands the newest submitted answer and scrolls it into view on
+manual-grading pages. Answers without files scroll to the submitted answer itself.
+
+For file answers, the first file preview is opened and fully expanded. A text
+preview longer than 500 lines is not expanded; when the answer has other files,
+it is closed again and the next readable file is used instead. If every file is
+that long, the first one stays open at its normal preview height.
 
 ### Color rubric scores
 
@@ -77,10 +82,10 @@ Enabled by default. Score fractions in rubric items and selected criterion headi
 are colored green for full credit, amber for partial credit, and red for no
 credit.
 
-### Highlight C code previews
+### Highlight C/Arduino code previews
 
-Enable this option to add C syntax colors and line numbers
-to submitted `.c` files in **Show preview**. Other file types are unchanged.
+Enable this option to add syntax colors and line numbers to submitted `.c` (C)
+and `.ino` (Arduino) files in **Show preview**. Other file types are unchanged.
 
 Works with both manually opened previews and **Open latest answer preview**.
 
@@ -94,7 +99,7 @@ and an error is shown. Read-only pages remain usable. Optional feature failures
 show a warning and disable only the affected feature.
 
 The element makes no network requests and does not store sensitive information.
-Prism is bundled for C highlighting; its license is included in
+Prism is bundled for C and Arduino highlighting; its license is included in
 `elements/pl-manual-grading-enhancements/THIRD_PARTY_NOTICES.txt`.
 
 ## Development and testing

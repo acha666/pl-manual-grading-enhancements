@@ -20,7 +20,7 @@ export const SETTING_DEFINITIONS = {
   latestAnswerPreview: {
     defaultValue: false,
     label: "Open latest answer preview",
-    help: "Expand and scroll to the newest submitted answer's file preview.",
+    help: "Expand and scroll to the newest submitted answer and a readable file preview.",
   },
   scoreColors: {
     defaultValue: true,
@@ -29,8 +29,8 @@ export const SETTING_DEFINITIONS = {
   },
   codePreview: {
     defaultValue: false,
-    label: "Highlight C code previews",
-    help: "Show C syntax colors and line numbers in submitted .c file previews.",
+    label: "Highlight C/Arduino code previews",
+    help: "Show syntax colors and line numbers in submitted .c and .ino file previews.",
   },
 } satisfies Record<string, SettingDefinition>;
 

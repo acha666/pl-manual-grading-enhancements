@@ -6,7 +6,7 @@ declare const require: (id: string) => unknown;
 let prism: typeof PrismType | undefined;
 
 /** Load only our bundled components, without auto-highlighting the host page. */
-export function highlightC(code: HTMLElement) {
+export function highlightCode(code: HTMLElement) {
   const host = window as Window & { Prism?: Partial<typeof PrismType> };
   const previous = host.Prism;
   try {
@@ -16,6 +16,8 @@ export function highlightC(code: HTMLElement) {
       prism = require("prismjs/components/prism-core.js") as typeof PrismType;
       require("prismjs/components/prism-clike.js");
       require("prismjs/components/prism-c.js");
+      require("prismjs/components/prism-cpp.js");
+      require("prismjs/components/prism-arduino.js");
       require("prismjs/plugins/line-numbers/prism-line-numbers.js");
       // HTML parsing normalizes literal CRLF; retain the submitted line endings.
       prism.hooks.add("before-insert", (env) => {

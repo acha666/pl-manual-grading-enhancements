@@ -42,3 +42,8 @@ export function stripTextPrefix(element: HTMLElement, length: number) {
     remaining -= consumed;
   }
 }
+
+/** Counts lines as editors number them, ignoring one trailing newline. */
+export function lineCount(text: string) {
+  return (text.match(/\n(?!$)/g)?.length ?? 0) + 1;
+}

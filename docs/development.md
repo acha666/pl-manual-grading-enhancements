@@ -65,10 +65,14 @@ and daylight abbreviations are supported. Unrecognized or missing times block sa
 Recognized zones are converted to ISO offsets before parsing for WebKit compatibility.
 The guard is reapplied after panel replacement and cleaned up through the runtime.
 
-`CodePreview` decorates native `.c` previews while enabled and restores plain text
-on cleanup. `core/prism.ts` loads bundled Prism core, C-like, C, and Line Numbers
-components on first use while preserving any host Prism instance. Preview styles
-belong in `styles.css`.
+`CodePreview` decorates native `.c` and `.ino` previews while enabled and restores
+plain text on cleanup. `core/prism.ts` loads bundled Prism core, C-like, C, C++,
+Arduino, and Line Numbers components on first use while preserving any host Prism
+instance. Preview styles belong in `styles.css`.
+
+`LatestAnswerPreview` opens the newest answer's file previews in order and uses
+the first one within `LONG_PREVIEW_LINES`. It closes only skipped previews that it
+opened, and scrolls to the submission card when the rendered answer has no files.
 
 ## Adding a feature
 

@@ -306,3 +306,154 @@ test("waits for a lazily rendered latest submission instead of opening an older 
   ]);
   assert.equal(olderClicks, 0);
 });
+
+test("scrolls to a rendered answer without files once its body is shown", async () => {
+  const dom = createPage();
+  const { document } = dom.window;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div data-testid="submission-block" id="answer">
+      <h2>Submitted answer</h2>
+      <button data-bs-toggle="collapse" aria-controls="answer-body" aria-expanded="false"></button>
+      <div class="js-submission-body collapse render-pending" data-submission-id="30" id="answer-body">
+        <div class="spinner-border"></div>
+      </div>
+    </div>`,
+  );
+  const block = document.querySelector("#answer");
+  const body = block.querySelector(".js-submission-body");
+  const scrolls = [];
+  dom.window.HTMLElement.prototype.scrollIntoView = function () {
+    scrolls.push(this);
+  };
+  block.querySelector("button").addEventListener("click", () => {
+    body.className = "js-submission-body collapsing render-pending";
+  });
+  dom.window.localStorage.setItem(
+    "pl.manualGradingEnhancements.settings.v1",
+    JSON.stringify({ latestAnswerPreview: true }),
+  );
+  loadBundle(dom.window);
+  fireDOMContentLoaded(dom.window);
+  const tick = () =>
+    new Promise((resolve) => dom.window.setTimeout(resolve, 25));
+  await tick();
+  body.className = "js-submission-body collapse show render-pending";
+  await tick();
+  assert.equal(scrolls.length, 0, "waits for the pending render");
+  body.className = "js-submission-body collapse show";
+  body.innerHTML = `<div class="card-body submission-body"><code>answer</code></div>`;
+  await tick();
+  assert.deepEqual(scrolls, [block]);
+  body.append("later");
+  await tick();
+  assert.equal(scrolls.length, 1);
+});
+
+// Models PrairieLearn's preview: Bootstrap collapse plus a delayed fetch.
+function fileItem(name, lines) {
+  return `<div class="js-file-preview-item" data-file="${name}">
+    <button data-bs-toggle="collapse" aria-expanded="false">Show preview</button>
+    <div class="js-error-alert d-none"></div><div class="js-info-alert d-none"></div>
+    <div class="file-preview collapse">
+      <div class="file-preview-container"><pre class="d-none"><code>${Array(lines).fill("x;").join("\n")}</code></pre></div>
+      <button class="file-preview-expand d-none">Expand</button>
+    </div>
+  </div>`;
+}
+
+function filePage(files) {
+  const dom = createPage();
+  const { window } = dom;
+  window.document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div data-testid="submission-block"><h2>Submitted answer</h2>
+      <div class="js-submission-body collapse show">
+        ${files.map(([name, lines]) => fileItem(name, lines)).join("")}
+      </div>
+    </div>`,
+  );
+  const items = [...window.document.querySelectorAll(".js-file-preview-item")];
+  const log = [];
+  for (const item of items) {
+    const toggle = item.querySelector("button");
+    const preview = item.querySelector(".file-preview");
+    const pre = item.querySelector("pre");
+    const container = item.querySelector(".file-preview-container");
+    const expand = item.querySelector(".file-preview-expand");
+    toggle.addEventListener("click", () => {
+      const opening = toggle.getAttribute("aria-expanded") !== "true";
+      log.push(`${opening ? "open" : "close"} ${item.dataset.file}`);
+      toggle.setAttribute("aria-expanded", String(opening));
+      preview.className = "file-preview collapsing";
+      window.setTimeout(() => {
+        preview.className = `file-preview collapse${opening ? " show" : ""}`;
+        if (opening && pre.classList.contains("d-none")) {
+          pre.classList.remove("d-none");
+          if (pre.textContent.split("\n").length > 10)
+            expand.classList.remove("d-none");
+        }
+      }, 5);
+    });
+    expand.addEventListener("click", () => {
+      log.push(`expand ${item.dataset.file}`);
+      container.style.maxHeight = "none";
+    });
+  }
+  const scrolls = [];
+  window.HTMLElement.prototype.scrollIntoView = function () {
+    scrolls.push(this.dataset.file);
+  };
+  window.localStorage.setItem(
+    "pl.manualGradingEnhancements.settings.v1",
+    JSON.stringify({ latestAnswerPreview: true }),
+  );
+  loadBundle(window);
+  fireDOMContentLoaded(window);
+  return {
+    log,
+    scrolls,
+    settle: () => new Promise((resolve) => window.setTimeout(resolve, 100)),
+  };
+}
+
+test("skips a long file preview when another file can be read in full", async () => {
+  const { log, scrolls, settle } = filePage([
+    ["project.vlx", 806],
+    ["sketch.ino", 52],
+    ["notes.txt", 3],
+  ]);
+  await settle();
+  assert.deepEqual(log, [
+    "open project.vlx",
+    "open sketch.ino",
+    "close project.vlx",
+    "expand sketch.ino",
+  ]);
+  assert.deepEqual(scrolls, ["sketch.ino"]);
+});
+
+test("keeps the first long file collapsed in place when no file is short", async () => {
+  const single = filePage([["main.c", 501]]);
+  await single.settle();
+  assert.deepEqual(single.log, ["open main.c"]);
+  assert.deepEqual(single.scrolls, ["main.c"]);
+
+  const multiple = filePage([
+    ["a.c", 600],
+    ["b.c", 700],
+  ]);
+  await multiple.settle();
+  assert.deepEqual(multiple.log, ["open a.c", "open b.c", "close b.c"]);
+  assert.deepEqual(multiple.scrolls, ["a.c"]);
+});
+
+test("expands a file of exactly the long-preview limit", async () => {
+  const { log, scrolls, settle } = filePage([
+    ["main.c", 500],
+    ["other.c", 1],
+  ]);
+  await settle();
+  assert.deepEqual(log, ["open main.c", "expand main.c"]);
+  assert.deepEqual(scrolls, ["main.c"]);
+});

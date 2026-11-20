@@ -1,6 +1,20 @@
 import { SELECTORS } from "../core/config.js";
-import { highlightC } from "../core/prism.js";
+import { lineCount } from "../core/dom.js";
+import { highlightCode } from "../core/prism.js";
 import type { Lifecycle } from "../core/types.js";
+
+// Bundled Prism grammars by submitted file extension.
+const LANGUAGES: Readonly<Record<string, string>> = {
+  ".c": "c",
+  ".ino": "arduino",
+};
+
+function languageOf(file: string | undefined) {
+  const extension = file?.match(/\.[^./]+$/)?.[0];
+  return extension && Object.hasOwn(LANGUAGES, extension)
+    ? LANGUAGES[extension]
+    : null;
+}
 
 interface Decoration {
   pre: HTMLElement;
@@ -10,7 +24,7 @@ interface Decoration {
   text: string;
 }
 
-/** Decorates native C file previews after PrairieLearn loads their text. */
+/** Decorates native C and Arduino previews after PrairieLearn loads their text. */
 export class CodePreview implements Lifecycle {
   private observers: MutationObserver[] = [];
   private decorations = new Map<HTMLElement, Decoration>();
@@ -67,7 +81,8 @@ export class CodePreview implements Lifecycle {
     block
       .querySelectorAll<HTMLElement>(SELECTORS.filePreviewItem)
       .forEach((item) => {
-        if (!item.dataset.file?.endsWith(".c")) return;
+        const language = languageOf(item.dataset.file);
+        if (!language) return;
         const code = item.querySelector<HTMLElement>(SELECTORS.filePreviewCode);
         const pre = code?.parentElement;
         if (!code || !pre || pre.classList.contains("d-none")) return;
@@ -84,10 +99,10 @@ export class CodePreview implements Lifecycle {
             pre,
             preClasses: [
               "plmge-code-preview",
-              "language-c",
+              `language-${language}`,
               "line-numbers",
             ].filter((name) => !pre.classList.contains(name)),
-            codeClasses: ["language-c"].filter(
+            codeClasses: [`language-${language}`].filter(
               (name) => !code.classList.contains(name),
             ),
             tabindex: pre.getAttribute("tabindex"),
@@ -98,12 +113,11 @@ export class CodePreview implements Lifecycle {
         pre.classList.add(...decoration.preClasses);
         code.classList.add(...decoration.codeClasses);
         // Keep the official gutter wide enough for files with four or more digits.
-        const lines = (text.match(/\n(?!$)/g)?.length ?? 0) + 1;
         pre.style.setProperty(
           "--plmge-line-digits",
-          String(Math.max(3, String(lines).length)),
+          String(Math.max(3, String(lineCount(text)).length)),
         );
-        highlightC(code);
+        highlightCode(code);
         decoration.text = text;
       });
   }

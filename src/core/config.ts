@@ -1,6 +1,8 @@
 export const VERSION = __VERSION__;
 export const DIGIT_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 export const GROUP_PATTERN = /^(\s*\[([^\]\r\n]+)\]\s*)/;
+// Text previews longer than this are not expanded or preferred as the latest answer.
+export const LONG_PREVIEW_LINES = 500;
 
 export const SELECTORS = Object.freeze({
   marker: "span[data-pl-manual-grading-enhancements][hidden]",

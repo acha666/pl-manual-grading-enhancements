@@ -1,7 +1,25 @@
-import { SELECTORS } from "../core/config.js";
+import { LONG_PREVIEW_LINES, SELECTORS } from "../core/config.js";
+import { lineCount } from "../core/dom.js";
 import type { Lifecycle } from "../core/types.js";
 
-/** Expands the newest submission and its file preview, then brings it into view once. */
+// Native previews reveal content (including empty files), or an alert, when
+// fetch finishes. Expand is not shown for short files or failures.
+const LOADED_PREVIEW =
+  ".file-preview pre:not(.d-none), " +
+  ".js-notebook-preview:not(.d-none), " +
+  ".js-file-preview-pdf-container:not(.d-none), " +
+  ".file-preview img:not(.d-none), " +
+  ".js-info-alert:not(.d-none), .js-error-alert:not(.d-none)";
+
+const isClosed = (element: HTMLElement | null | undefined) =>
+  !!element?.classList.contains("collapse") &&
+  !element.classList.contains("show");
+
+/**
+ * Expands the newest submission and brings it into view once. File answers
+ * open the first preview short enough to read in full, falling back to the
+ * first file when every text preview is long.
+ */
 export class LatestAnswerPreview implements Lifecycle {
   private frame: number | null = null;
   private cleanup: (() => void) | null = null;
@@ -69,6 +87,46 @@ export class LatestAnswerPreview implements Lifecycle {
     this.initializedBlock = latest;
 
     const openedToggles = new WeakSet<Element>();
+    const closedToggles = new WeakSet<Element>();
+    const toggleOf = (item: HTMLElement) =>
+      item.querySelector<HTMLButtonElement>(
+        'button[data-bs-toggle="collapse"]',
+      );
+    const previewOf = (item: HTMLElement) =>
+      item.querySelector<HTMLElement>(".file-preview");
+    // Bootstrap ignores toggles during a transition, so click only when idle.
+    const open = (item: HTMLElement) => {
+      const toggle = toggleOf(item) as HTMLButtonElement;
+      if (
+        !openedToggles.has(toggle) &&
+        toggle.getAttribute("aria-expanded") !== "true" &&
+        !previewOf(item)?.classList.contains("collapsing")
+      ) {
+        openedToggles.add(toggle);
+        toggle.click();
+      }
+    };
+    // Restore only previews this feature opened and then skipped.
+    const close = (item: HTMLElement) => {
+      const toggle = toggleOf(item) as HTMLButtonElement;
+      if (
+        openedToggles.has(toggle) &&
+        !closedToggles.has(toggle) &&
+        toggle.getAttribute("aria-expanded") === "true" &&
+        !previewOf(item)?.classList.contains("collapsing")
+      ) {
+        closedToggles.add(toggle);
+        toggle.click();
+      }
+    };
+    const status = (item: HTMLElement) => {
+      if (previewOf(item) && !item.querySelector(LOADED_PREVIEW))
+        return "loading";
+      const text =
+        item.querySelector(".file-preview pre:not(.d-none)")?.textContent ?? "";
+      return lineCount(text) > LONG_PREVIEW_LINES ? "long" : "readable";
+    };
+
     const cancelScroll = () => {
       if (this.frame !== null) window.cancelAnimationFrame(this.frame);
       this.frame = null;
@@ -76,65 +134,68 @@ export class LatestAnswerPreview implements Lifecycle {
     const update = () => {
       cancelScroll();
       // A collapsed submission can render its body asynchronously. Always
-      // resolve the preview inside this submission, never the question upload.
-      const item = latest.querySelector<HTMLElement>(
-        `${SELECTORS.submissionBody} ${SELECTORS.filePreviewItem}`,
-      );
-      const toggle = item?.querySelector<HTMLButtonElement>(
-        'button[data-bs-toggle="collapse"]',
-      );
-      if (!item || !toggle) return;
-      const preview = item.querySelector<HTMLElement>(".file-preview");
+      // resolve previews inside this submission, never the question upload.
       if (
-        !openedToggles.has(toggle) &&
-        toggle.getAttribute("aria-expanded") !== "true" &&
-        !preview?.classList.contains("collapsing")
-      ) {
-        openedToggles.add(toggle);
-        toggle.click();
-      }
-      const expandButton = item.querySelector<HTMLButtonElement>(
-        ".file-preview-expand:not(.d-none)",
-      );
-      const container = item.querySelector<HTMLElement>(
-        ".file-preview-container",
-      );
-      if (expandButton && container && container.style.maxHeight !== "none") {
-        expandButton.click();
-      }
-      // Native previews reveal content (including empty files), or an alert,
-      // when fetch finishes. Expand is not shown for short files or failures.
-      const ready =
-        !preview ||
-        !!item.querySelector(
-          ".file-preview pre:not(.d-none), " +
-            ".js-notebook-preview:not(.d-none), " +
-            ".js-file-preview-pdf-container:not(.d-none), " +
-            ".file-preview img:not(.d-none), " +
-            ".js-info-alert:not(.d-none), .js-error-alert:not(.d-none)",
+        body &&
+        (isClosed(body) ||
+          body.classList.contains("render-pending") ||
+          !body.firstElementChild)
+      )
+        return;
+      const items = [
+        ...latest.querySelectorAll<HTMLElement>(
+          `${SELECTORS.submissionBody} ${SELECTORS.filePreviewItem}`,
+        ),
+      ].filter((item) => toggleOf(item));
+
+      // Answers without files scroll to the submission itself.
+      let target = latest;
+      if (items.length) {
+        // Load previews in order until one can be read in full.
+        let readable: HTMLElement | undefined;
+        for (const item of items) {
+          open(item);
+          const state = status(item);
+          if (state === "loading") return;
+          if (state === "readable") {
+            readable = item;
+            break;
+          }
+        }
+        target = readable ?? items[0];
+        for (const item of items) if (item !== target) close(item);
+
+        if (readable) {
+          const expandButton = readable.querySelector<HTMLButtonElement>(
+            ".file-preview-expand:not(.d-none)",
+          );
+          const container = readable.querySelector<HTMLElement>(
+            ".file-preview-container",
+          );
+          if (
+            expandButton &&
+            container &&
+            container.style.maxHeight !== "none"
+          ) {
+            expandButton.click();
+          }
+        }
+        if (isClosed(previewOf(target))) return;
+        const img = target.querySelector<HTMLImageElement>(
+          ".file-preview img:not(.d-none)",
         );
-      if (!ready || document.readyState !== "complete") return;
+        if (img && !img.complete) return;
+      }
+      if (document.readyState !== "complete") return;
       if (latest.querySelector(".collapsing")) return;
-      if (
-        preview?.classList.contains("collapse") &&
-        !preview.classList.contains("show")
-      )
-        return;
-      if (
-        body?.classList.contains("collapse") &&
-        !body.classList.contains("show")
-      )
-        return;
-      const img = preview?.querySelector<HTMLImageElement>("img:not(.d-none)");
-      if (img && !img.complete) return;
 
       // Allow layout and code decoration to settle before computing the final
       // scroll destination. Mutations in between cancel and reschedule this.
       this.frame = window.requestAnimationFrame(() => {
         this.frame = window.requestAnimationFrame(() => {
           this.stopWatching();
-          if (item.isConnected) {
-            item.scrollIntoView({ behavior: "instant", block: "start" });
+          if (target.isConnected) {
+            target.scrollIntoView({ behavior: "instant", block: "start" });
           }
         });
       });

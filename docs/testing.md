@@ -94,6 +94,9 @@ uncaptured requests and writes, and exercises delayed hydration, exclusive
 selection, percentage display, rubric row removal, shortcuts, and feedback state.
 Keep HAR files private; they can contain credentials and student data. This replay
 does not replace the deployment test's persisted-grade checks.
+`tests/browser/har-answer-preview.cjs` replays captures with **Open latest answer
+preview** enabled. It serves synthetic file bodies, making the first of several
+files too long, and injects the element when the captured question lacks it.
 Both HAR replay scripts in `tests/browser/` accept `PLMGE_BROWSER`.
 
 ## Diagnostics and cleanup

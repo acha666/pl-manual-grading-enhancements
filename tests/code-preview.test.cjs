@@ -151,3 +151,35 @@ test("preserves nonbreaking spaces inside highlighted tokens", () => {
   toggle(window);
   assert.equal(code.textContent, text);
 });
+
+test("highlights Arduino sketches with the Arduino grammar", () => {
+  const dom = createPage();
+  const { window } = dom;
+  const sketch =
+    "const int LED = 13;\nvoid setup() {\n  pinMode(LED, OUTPUT);\n  Serial.begin(9600);\n}\nvoid loop() {\n  digitalWrite(LED, HIGH);\n  bool on = true;\n}\n";
+  const block = preview(window.document, "sketch.ino", sketch);
+  loadBundle(window);
+  fireDOMContentLoaded(window);
+  toggle(window);
+  const code = block.querySelector("code");
+  const pre = block.querySelector("pre");
+  const tokens = (type) =>
+    [...code.querySelectorAll(`.token.${type}`)].map(
+      (node) => node.textContent,
+    );
+  assert.ok(pre.classList.contains("language-arduino"));
+  assert.ok(code.classList.contains("language-arduino"));
+  // Prism's generic call pattern precedes Arduino builtins, as upstream.
+  assert.deepEqual(tokens("function"), ["pinMode", "begin", "digitalWrite"]);
+  assert.deepEqual(tokens("builtin"), ["Serial"]);
+  assert.deepEqual(tokens("constant"), ["OUTPUT", "HIGH"]);
+  assert.ok(tokens("keyword").includes("setup"));
+  assert.ok(tokens("keyword").includes("loop"));
+  assert.deepEqual(tokens("boolean"), ["true"]);
+  assert.equal(code.querySelectorAll(".line-numbers-rows > span").length, 9);
+  assert.equal(code.textContent, sketch);
+  toggle(window);
+  assert.equal(pre.classList.contains("language-arduino"), false);
+  assert.equal(code.children.length, 0);
+  assert.equal(code.textContent, sketch);
+});
