@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.5
+
+- **Open latest answer preview** now scrolls to answers without file uploads.
+- Skip text previews longer than 500 lines when expanding and scrolling; multi-file answers fall back to the next readable file.
+- Highlight Arduino `.ino` previews; the option is now **Highlight C/Arduino code previews**.
+
 ## 3.3.4
 
 - Remove the custom sticky grading panel now that PrairieLearn provides native split panes; update grading-page checks for the current layout and dropdown behavior.
